@@ -14,7 +14,7 @@
 
 ## Overview
 
-The **`geometricVofExt`** package is an unofficial module of the geometric Volume of Fluid (VOF) method for OpenFOAM. This extension has a suite of pre- and post-processing tools alongside various solvers dedicated to two-phase flow dynamics. The pre-processing utilities are methodically assembled to initialize fraction fields of arbitrary shapes with optional dynamic mesh refinement, and to set up scalar, vector or tensor fields that vary based on the fraction values. These utilities are designed to enhance the flexibility and precision of multiphase flow simulations.
+The **`geometricVofExt`** package is an unofficial module of the geometric Volume of Fluid (VOF) method for OpenFOAM. This extension has a suite of pre- and post-processing tools alongside various solvers dedicated to two-phase flow dynamics. The pre-processing utilities are methodically assembled to initialize fraction fields of arbitrary shapes with optional dynamic mesh refinement, and to set up scalar, vector or tensor fields that vary based on the fraction values. These utilities are designed to enhance the flexibility and accuracy of multiphase flow simulations.
 
 Moreover, the **`geometricVofExt`** package features solvers that utilize the innovative [SimPLIC](https://arxiv.org/abs/2402.05247) method, which supports unstructured meshes composed of arbitrary polyhedral cells. The SimPLIC method integrates Piecewise Linear Interface Calculation (PLIC) with Simpson's rule, offering an accurate and efficient approach to solve the VOF equation. These solvers are also designed to simulate the phase change phenomena and floating body dynamics. Additionally, the solvers ensure high adaptability to complex simulation scenarios with optional dynamic mesh refinement.
 
