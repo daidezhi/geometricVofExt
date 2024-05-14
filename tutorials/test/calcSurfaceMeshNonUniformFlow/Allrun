@@ -5,10 +5,10 @@ cd "${0%/*}" || exit                                # Run from this directory
 
 [ -d postProcessing ] || mkdir postProcessing
 
-calcSurfaceMeshNonUniformFlow initialShapeMeshNonUniform.stlb -dt 0.005 \
+calcSurfaceMeshNonUniformFlow initialShapeMeshIcosphere.stlb -dt 0.005 \
     > log.calcSurfaceMeshNonUniformFlow_initialShapeMeshIcosphere
 
-calcSurfaceMeshNonUniformFlow initialShapeMeshIcosphere.stlb -dt 0.005 \
+calcSurfaceMeshNonUniformFlow initialShapeMeshNonUniform.stlb -dt 0.005 \
     > log.calcSurfaceMeshNonUniformFlow_initialShapeMeshNonUniform
 
 #------------------------------------------------------------------------------
