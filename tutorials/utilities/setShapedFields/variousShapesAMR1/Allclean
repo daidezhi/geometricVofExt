@@ -1,0 +1,16 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+rm -rf dynamicCode 0
+
+rm -rf constant/polyMesh
+
+rm -rf postProcessing
+
+rm -f log.blockMesh log.setVofField log.setShapedFields
+
+rm -rf *.foam
+
+#------------------------------------------------------------------------------

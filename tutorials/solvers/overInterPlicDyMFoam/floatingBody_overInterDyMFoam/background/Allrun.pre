@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Create background mesh
+runApplication blockMesh
+
+# Add the cylinder mesh
+runApplication mergeMeshes . ../floatingBody -overwrite
+
+# Select cellSets for the different zones
+runApplication topoSet
+
+restore0Dir
+
+# Use cellSets to write zoneID
+runApplication setFields
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,16 @@
+#!/bin/bash
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+times=(3 2.75 2.5 2.25 2 1.75 1.5 1.25 1 0.75 0.5 0.25 0)
+
+echo
+echo "Linking exact alpha fields"
+
+for time_i in "${times[@]}"; do
+    [ -d ${time_i} ] && ln -rsf ../exactSolutions/${time_i}/alpha.water.exact ${time_i}/alpha.water.exact
+done
+
+echo
+
+#------------------------------------------------------------------------------

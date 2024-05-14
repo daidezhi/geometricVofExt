@@ -1,0 +1,25 @@
+#!/bin/sh
+# Run from geometricVofExt/applications directory only
+cd "${0%/*}" || exit
+wmake -check-dir "$WM_PROJECT_USER_DIR/modules/geometricVofExt/applications" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_PROJECT_USER_DIR/modules/geometricVofExt/applications"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+#------------------------------------------------------------------------------
+
+echo " >> Compile utilities/solvers in test"
+
+echo -n "    >> " && wmake test/createIcosphere
+echo -n "    >> " && wmake test/calcSurfaceMeshNonUniformFlow
+echo -n "    >> " && wmake test/plicVofOrientationFoam
+echo -n "    >> " && wmake test/plicVofAdvectionFoam
+echo -n "    >> " && wmake test/isoAdvectorAdvectionFoam
+
+echo -n "    >> " && wmake libso test/calcVofAdvectionErrors/isoSurfaceVolume
+echo -n "    >> " && wmake test/calcVofAdvectionErrors
+
+echo " >> Done"
+echo
+
+#------------------------------------------------------------------------------

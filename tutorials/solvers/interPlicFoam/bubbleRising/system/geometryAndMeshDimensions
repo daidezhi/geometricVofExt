@@ -1,0 +1,17 @@
+length  0.5;
+width   0.5;
+height  1.1;
+
+xMin    #eval{ -0.5 * $length };
+xMax    #eval{  0.5 * $length };
+
+yMin    #eval{ -0.5 * $width };
+yMax    #eval{  0.5 * $width };
+
+zMin    -0.1;
+zMax    #eval{ $height + $zMin };
+
+ds      0.01;   // Base size
+nx      #calc "round($length / $ds)";
+ny      #calc "round($width  / $ds)";
+nz      #calc "round($height / $ds)";

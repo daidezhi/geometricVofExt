@@ -1,0 +1,86 @@
+ solid PRO2STL version 1.0
+ facet normal 0 0 -1
+ outer loop 
+ vertex 0.625 0.375 -0.05
+ vertex 0.375 0.375 -0.05
+ vertex 0.375 0.625 -0.05
+ endloop
+ endfacet
+ facet normal 0 -1 0
+ outer loop 
+ vertex 0.375 0.375 -0.05
+ vertex 0.625 0.375 -0.05
+ vertex 0.625 0.375 0.25
+ endloop
+ endfacet
+ facet normal -1 0 0
+ outer loop 
+ vertex 0.375 0.625 -0.05
+ vertex 0.375 0.375 -0.05
+ vertex 0.375 0.375 0.25
+ endloop
+ endfacet
+ facet normal 0 -1 0
+ outer loop 
+ vertex 0.625 0.375 0.25
+ vertex 0.375 0.375 0.25
+ vertex 0.375 0.375 -0.05
+ endloop
+ endfacet
+ facet normal -0 -0 -1
+ outer loop 
+ vertex 0.375 0.625 -0.05
+ vertex 0.625 0.625 -0.05
+ vertex 0.625 0.375 -0.05
+ endloop
+ endfacet
+ facet normal 1 0 0
+ outer loop 
+ vertex 0.625 0.375 0.25
+ vertex 0.625 0.375 -0.05
+ vertex 0.625 0.625 -0.05
+ endloop
+ endfacet
+ facet normal 0 1 0
+ outer loop 
+ vertex 0.625 0.625 -0.05
+ vertex 0.375 0.625 -0.05
+ vertex 0.375 0.625 0.25
+ endloop
+ endfacet
+ facet normal 0 1 0
+ outer loop 
+ vertex 0.375 0.625 0.25
+ vertex 0.625 0.625 0.25
+ vertex 0.625 0.625 -0.05
+ endloop
+ endfacet
+ facet normal 1 0 0
+ outer loop 
+ vertex 0.625 0.625 -0.05
+ vertex 0.625 0.625 0.25
+ vertex 0.625 0.375 0.25
+ endloop
+ endfacet
+ facet normal -1 -0 -0
+ outer loop 
+ vertex 0.375 0.375 0.25
+ vertex 0.375 0.625 0.25
+ vertex 0.375 0.625 -0.05
+ endloop
+ endfacet
+ facet normal 0 0 1
+ outer loop 
+ vertex 0.625 0.375 0.25
+ vertex 0.625 0.625 0.25
+ vertex 0.375 0.625 0.25
+ endloop
+ endfacet
+ facet normal 0 0 1
+ outer loop 
+ vertex 0.375 0.625 0.25
+ vertex 0.375 0.375 0.25
+ vertex 0.625 0.375 0.25
+ endloop
+ endfacet
+endsolid PRO2STL version 1.0

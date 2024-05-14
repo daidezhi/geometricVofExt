@@ -1,0 +1,58 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2312                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+FoamFile
+{
+    version         2;
+    format          ascii;
+    class           dictionary;
+    location        "system";
+    object          setShapedFieldsDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+triangulationScheme     "fan";
+extraBooleanCheck       false;
+
+defaultFieldValues
+(
+    volVectorFieldValue U (0 0 0)
+);
+
+shapes
+{
+//    pool
+//    {
+//        type            box;
+//        min             (-0.021 -0.021 -0.001);
+//        max             ( 0.021  0.021  0.013);
+//        mode            add;
+//
+//        fieldValues
+//        (
+//            volVectorFieldValue U (0 0 0)
+//        );
+//    }
+
+    droplet
+    {
+        type            sphere;
+        radius          0.001;
+        centre          (0.0 0.0 0.012);
+        subdivision     5;
+
+        fieldValues
+        (
+            volVectorFieldValue U (0 0 -5)
+        );
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,114 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2312                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    cellDisplacement
+    {
+        solver          PCG;
+        preconditioner  DIC;
+
+        tolerance       1e-06;
+        relTol          0;
+        maxIter         100;
+    }
+
+    "alpha.water.*"
+    {
+        nAlphaBounds        5;
+
+        mixedCellTol        1e-10;
+        snapTol             1e-12;
+        clip                true;
+
+        orientationMethod   LS; //RDF
+        splitWarpedFace     false;
+        writePlicFields     false;
+        mapAlphaField       true;
+
+        nAlphaSubCycles     1;
+        cAlpha              1;
+    }
+
+    p_rgh
+    {
+        solver          PBiCGStab;
+        preconditioner  diagonal;
+        tolerance       1e-12;
+        relTol          0.01;
+        maxIter         500;
+    }
+
+    p_rghFinal
+    {
+        $p_rgh;
+        relTol          0;
+    }
+
+    pcorr
+    {
+        $p;
+        solver          PCG;
+        preconditioner  DIC;
+    }
+
+    pcorrFinal
+    {
+        $pcorr;
+        relTol          0;
+    }
+
+    "(U|k|epsilon|T)"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-6;
+        relTol          0.01;
+        maxIter         200;
+        minIter         1;
+    }
+
+    "(U|k|epsilon|T)Final"
+    {
+        $U;
+        relTol          0;
+    }
+}
+
+PIMPLE
+{
+    momentumPredictor   no;
+    nOuterCorrectors    2;
+    nCorrectors         3;
+    nNonOrthogonalCorrectors 0;
+
+    pRefPoint           (0.0002 0.0099 0.001);
+    pRefValue           1e5;
+}
+
+relaxationFactors
+{
+   fields
+   {
+   }
+   equations
+   {
+       ".*"             1;
+   }
+}
+
+
+// ************************************************************************* //

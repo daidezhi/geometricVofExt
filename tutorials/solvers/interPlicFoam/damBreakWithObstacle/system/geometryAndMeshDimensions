@@ -1,0 +1,17 @@
+length  1.0;
+width   1.0;
+height  1.0;
+
+xMin    0;
+xMax    $length;
+
+yMin    0;
+yMax    $width;
+
+zMin    0;
+zMax    $height;
+
+ds      0.02;   // Base size
+nx      #calc "round($length / $ds)";
+ny      #calc "round($width  / $ds)";
+nz      #calc "round($height / $ds)";

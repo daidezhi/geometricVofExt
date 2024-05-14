@@ -1,0 +1,34 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+# Run from $WM_PROJECT_USER_DIR/modules/geometricVofExt/src directory only
+wmake -check-dir "$WM_PROJECT_USER_DIR/modules/geometricVofExt/src" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_PROJECT_USER_DIR/modules/geometricVofExt/src"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments # (error catching)
+. ${WM_PROJECT_DIR:?}/wmake/scripts/have_cgal
+#------------------------------------------------------------------------------
+
+echo " >> Compile geometricVofExt libraries"
+
+
+ln -sf $WM_PROJECT_DIR/src/transportModels/geometricVoF/reconstructedDistanceFunction/reconstructedDistanceFunction.H $WM_PROJECT_USER_DIR/modules/geometricVofExt/src/SimPLIC/reconstruction/reconstructedDistanceFunction.H
+
+ln -sf $WM_PROJECT_DIR/src/transportModels/geometricVoF/reconstructedDistanceFunction/reconstructedDistanceFunction.C $WM_PROJECT_USER_DIR/modules/geometricVofExt/src/SimPLIC/reconstruction/reconstructedDistanceFunction.C
+
+echo -n "    >> "
+wmake libso SimPLIC
+
+if have_cgal; then
+    echo -n "    >> "
+    wmake libso CGALVof
+else
+    echo "    >> WARNING: CGAL is not found, cannot build CGALVof, skip"
+fi
+
+echo " >> Done"
+echo
+
+#------------------------------------------------------------------------------

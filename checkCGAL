@@ -1,0 +1,27 @@
+#!/bin/sh
+# Run from geometricVofExt top-level directory only
+cd "${0%/*}" || exit
+wmake -check-dir "$WM_PROJECT_USER_DIR/modules/geometricVofExt" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_PROJECT_USER_DIR/modules/geometricVofExt"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+
+. ${WM_PROJECT_DIR:?}/wmake/scripts/have_cgal
+#------------------------------------------------------------------------------
+
+echo
+echo "****************************** Check CGAL ******************************"
+echo
+
+if have_cgal; then
+    echo_cgal
+else
+    echo " >> WARNING: CGAL is not found."
+fi
+
+echo
+echo "********************************* Done *********************************"
+echo
+
+#------------------------------------------------------------------------------

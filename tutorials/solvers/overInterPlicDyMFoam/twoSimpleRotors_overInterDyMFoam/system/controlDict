@@ -1,0 +1,170 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2312                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+libs            (overset fvMotionSolvers);
+
+DebugSwitches
+{
+    overset                 0;
+    dynamicOversetFvMesh    0;
+    cellVolumeWeight        0;
+}
+
+application     overInterDyMFoam ;
+
+startFrom       latestTime;
+startTime       0.0;
+stopAt          endTime;
+endTime         2;
+deltaT          0.001;
+
+writeControl    adjustable;
+writeInterval   0.1;
+purgeWrite      0;
+writeFormat     binary;
+writePrecision  12;
+writeCompression off;
+
+timeFormat      general;
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+maxCo           1.0;
+maxAlphaCo      0.5;
+maxDeltaT       1;
+
+functions
+{
+    probes
+    {
+        type            probes;
+        libs            (sampling);
+
+        // Name of the directory for probe data
+        name            probes;
+
+        // Write at same frequency as fields
+        writeControl    timeStep;
+        writeInterval   1;
+
+        // Fields to be probed
+        fields          (p U);
+
+        // Optional: interpolation scheme to use (default is cell)
+        interpolationScheme cell;
+
+        probeLocations
+        (
+             (0.0009999 0.0015 0.003)
+        );
+    }
+
+    alphaVol
+    {
+        libs            (utilityFunctionObjects);
+        type            coded;
+        name            alphaVolume;
+        writeControl    timeStep;
+        writeInterval   10;
+
+        codeWrite
+        #{
+
+            const auto& alpha =
+                mesh().lookupObject<volScalarField>("alpha.water");
+
+            Info<< "Alpha volume = " << alpha.weightedAverage(mesh().Vsc())
+                << endl;
+
+        #};
+    }
+
+    // Added functions
+    isoInterface
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       0.01;
+
+        surfaceFormat       vtp;
+        fields              ( alpha.water U p p_rgh volZoneID cellMask interpolatedCells );
+
+        interpolationScheme cellPoint;
+
+        surfaces
+        (
+            isoSurf
+            {
+                type        isoSurfaceTopo;
+                isoField    alpha.water;
+                isoValue    0.5;
+                interpolate true;
+            }
+        );
+    }
+
+    rotors
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       0.01;
+
+        surfaceFormat       vtp;
+        fields              (p U alpha.water);
+
+        interpolationScheme cellPoint;  //<- default
+
+        surfaces
+        {
+            rotors
+            {
+                type            patch;
+                patches         (hole);
+                interpolate     false;
+                triangulate     false;
+            }
+        }
+    }
+
+    zPlaneCut
+    {
+        $rotors;
+
+        fields              ( alpha.water U p p_rgh volZoneID cellMask interpolatedCells );
+
+        surfaces
+        (
+            face1
+            {
+                type            cuttingPlane;
+                planeType       pointAndNormal;
+                pointAndNormalDict
+                {
+                    point       (0.01 0.005 0.005);
+                    normal      (0 0 1);
+                    interpolate false;
+                }
+            }
+        );
+    }
+}
+
+
+// ************************************************************************* //

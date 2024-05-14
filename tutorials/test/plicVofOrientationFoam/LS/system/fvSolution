@@ -1,0 +1,36 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2212                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "alpha.*"
+    {
+        mixedCellTol        1e-8;
+        orientationMethod   LS;     // or isoAlphaGrad
+        splitWarpedFace     false;
+        writePlicFields     true;
+        refShapePath        "../../toolSurfaceMesh/";
+    };
+}
+
+
+PIMPLE
+{
+
+}
+
+
+// ************************************************************************* //

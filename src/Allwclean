@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit    # Run from this directory
+#------------------------------------------------------------------------------
+
+unlink $WM_PROJECT_USER_DIR/modules/geometricVofExt/src/SimPLIC/reconstruction/reconstructedDistanceFunction.H
+
+unlink $WM_PROJECT_USER_DIR/modules/geometricVofExt/src/SimPLIC/reconstruction/reconstructedDistanceFunction.C
+
+wclean libso SimPLIC
+
+wclean libso CGALVof
+
+#------------------------------------------------------------------------------

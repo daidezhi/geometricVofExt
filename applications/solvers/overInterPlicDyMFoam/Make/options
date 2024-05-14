@@ -1,0 +1,40 @@
+EXE_INC = \
+    -I$(WM_PROJECT_USER_DIR)/modules/geometricVofExt/src/SimPLIC/lnInclude \
+    -I$(LIB_SRC)/phaseSystemModels/twoPhaseInter/incompressibleInterPhaseTransportModel/lnInclude \
+    -I$(LIB_SRC)/phaseSystemModels/twoPhaseInter/VoFphaseIncompressibleTurbulenceModels/lnInclude \
+    -I$(LIB_SRC)/transportModels \
+    -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
+    -I$(LIB_SRC)/transportModels/incompressible/lnInclude \
+    -I$(LIB_SRC)/transportModels/interfaceProperties/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/turbulenceModels/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/incompressible/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/phaseIncompressible/lnInclude \
+    -I$(LIB_SRC)/transportModels/immiscibleIncompressibleTwoPhaseMixture/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/dynamicFvMesh/lnInclude \
+    -I$(LIB_SRC)/dynamicMesh/lnInclude \
+    -I$(LIB_SRC)/overset/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/sampling/lnInclude
+
+EXE_LIBS = \
+    -L$(FOAM_USER_LIBBIN) \
+    -limmiscibleIncompressibleTwoPhaseMixture \
+    -lturbulenceModels \
+    -lincompressibleTurbulenceModels \
+    -lincompressibleTransportModels \
+    -lVoFphaseTurbulentTransportModels \
+    -lincompressibleInterPhaseTransportModels \
+    -linterfaceProperties \
+    -lfiniteVolume \
+    -ldynamicFvMesh \
+    -lfvOptions \
+    -lsurfMesh \
+    -lmeshTools \
+    -lsampling \
+    -lwaveModels \
+    -loverset \
+    -ltwoPhaseMixture \
+    -ltwoPhaseProperties \
+    -lSimPLIC

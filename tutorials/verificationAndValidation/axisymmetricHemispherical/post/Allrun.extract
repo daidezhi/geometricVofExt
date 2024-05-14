@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+pMeanFile=postProcessing/structureSurface/0.5/structureSurface_pMean.xy
+
+
+# Mesh independence study -----------------------------------------------------
+meshes=("coarse" "medium" "fine")           # Mesh names
+
+[ -d meshIndependence ] || mkdir meshIndependence
+
+for ci in ${!meshes[@]}; do
+    python3 calcPressureCoeff.py ${meshes[$ci]} 0.2 \
+        ../sim/meshIndependence/${meshes[$ci]}/${pMeanFile} \
+        meshIndependence
+done
+#------------------------------------------------------------------------------
+
+
+# Results from interPlicPhaseChangeFoam ---------------------------------------
+cases=("cavNum02" "cavNum03" "cavNum04")    # Case names
+cavNums=("0.2" "0.3" "0.4")                 # Cavitation numbers
+
+[ -d interPlicPhaseChangeFoam ] || mkdir interPlicPhaseChangeFoam
+
+for ci in ${!cases[@]}; do
+    python3 calcPressureCoeff.py ${cases[$ci]} ${cavNums[$ci]} \
+        ../sim/interPlicPhaseChangeFoam/${cases[$ci]}/${pMeanFile} \
+        interPlicPhaseChangeFoam
+done
+#------------------------------------------------------------------------------
+
+
+# Results from interPhaseChangeFoam -------------------------------------------
+[ -d interPhaseChangeFoam ] || mkdir interPhaseChangeFoam
+
+for ci in ${!cases[@]}; do
+    python3 calcPressureCoeff.py ${cases[$ci]} ${cavNums[$ci]} \
+        ../sim/interPhaseChangeFoam/${cases[$ci]}/${pMeanFile} \
+        interPhaseChangeFoam
+done
+#------------------------------------------------------------------------------

@@ -1,0 +1,12 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+createIcosphere sphere1.vtp
+
+createIcosphere -centre "(1 1 1)" -radius 0.5 -subdiv 2 sphere2.stl
+
+createIcosphere -centre "(2 2 2)" -radius 1.5 -subdiv 1 sphere3.vtk
+
+#------------------------------------------------------------------------------

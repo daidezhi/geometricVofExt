@@ -1,0 +1,19 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2312                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+// initialKE is calculated using online tool at
+// http://ichrome.com/blogs/archives/342, and the reference length is using
+// domain diameter (0.2m). The turbulence intensity is 2.8155%.
+
+initialAlpha    1.0;                    // Fraction $\alpha$
+initialKE       0.03531705931997764;    // Turbulence kinetic energy $k$
+initialNut      0.000001002;            // Turbulent viscosity $\nu_t$
+initialP        6785.4643;              // Pressure $p_{rgh}$
+initialU        (5.45 0 0);             // Velocity $U$
+
+// ************************************************************************* //

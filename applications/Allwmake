@@ -1,0 +1,39 @@
+#!/bin/sh
+# Run from geometricVofExt/applications directory only
+cd "${0%/*}" || exit
+wmake -check-dir "$WM_PROJECT_USER_DIR/modules/geometricVofExt/applications" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_PROJECT_USER_DIR/modules/geometricVofExt/applications"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments # (error catching)
+#------------------------------------------------------------------------------
+
+echo " >> Compile geometricVofExt utilities"
+
+echo -n "    >> " && wmake utilities/writeVtkSeries
+
+if [ -f $WM_PROJECT_USER_DIR/platforms/${WM_OPTIONS}/lib/libCGALVof.so ]; then
+    echo -n "    >> " && wmake utilities/setVofField
+    echo -n "    >> " && wmake utilities/setShapedFields
+else
+    echo "    >> WARNING: CGALVof is not built, cannot build setVofField, skip"
+    echo "    >> WARNING: CGALVof is not built, cannot build setShapedFields, skip"
+fi
+
+echo " >> Done"
+echo
+
+
+echo " >> Compile geometricVofExt solvers"
+
+echo -n "    >> " && wmake solvers/interPlicFoam
+echo -n "    >> " && wmake solvers/overInterPlicDyMFoam
+echo -n "    >> " && wmake solvers/interPlicPhaseChangeFoam
+echo -n "    >> " && wmake solvers/overInterPlicPhaseChangeDyMFoam
+
+echo " >> Done"
+echo
+
+#------------------------------------------------------------------------------

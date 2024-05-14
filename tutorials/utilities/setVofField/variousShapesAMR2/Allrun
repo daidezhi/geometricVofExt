@@ -1,0 +1,16 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+rm -rf 0
+
+cp -r 0.orig 0
+
+runApplication blockMesh
+
+runApplication setVofField -np 4
+
+touch ${PWD##*/}.foam
+
+#------------------------------------------------------------------------------

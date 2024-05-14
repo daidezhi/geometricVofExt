@@ -1,0 +1,141 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2312                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+libs            (overset fvMotionSolvers);
+
+application     overInterPlicDyMFoam;
+
+startFrom       latestTime;
+startTime       0.0;
+stopAt          endTime;
+endTime         10;
+deltaT          0.0001;
+
+writeControl    adjustable;
+writeInterval   1.0;
+purgeWrite      0;
+writeFormat     binary;
+writePrecision  12;
+writeCompression off;
+
+timeFormat      general;
+timePrecision   6;
+
+runTimeModifiable yes;
+adjustTimeStep  yes;
+maxCo           0.75;
+maxAlphaCo      0.5;
+maxDeltaT       1;
+
+functions
+{
+    plicInterface
+    {
+        type            surfaces;
+        libs            (SimPLIC sampling);
+        writeControl    adjustableRunTime;
+        writeInterval   1;
+
+        surfaceFormat   vtp;
+        fields          ( alpha.water U p p_rgh volZoneID cellMask interpolatedCells );
+
+        interpolationScheme cell;
+
+        surfaces
+        (
+            plicSurf
+            {
+                type            plicSurface;
+                interpolate     false;
+            }
+        );
+    }
+
+    isoInterface
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       0.01;
+
+        surfaceFormat       vtp;
+        fields              ( alpha.water U p p_rgh volZoneID cellMask interpolatedCells );
+
+        interpolationScheme cellPoint;
+
+        surfaces
+        (
+            isoSurf
+            {
+                type        isoSurfaceTopo;
+                isoField    alpha.water;
+                isoValue    0.5;
+                interpolate true;
+            }
+        );
+    }
+
+    floatingObject
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       0.01;
+
+        surfaceFormat       vtp;
+        fields              (p U alpha.water);
+
+        interpolationScheme cellPoint;  //<- default
+
+        surfaces
+        {
+            floatingObject
+            {
+                type            patch;
+                patches         (floatingObject);
+                interpolate     false;
+                triangulate     false;
+            }
+        }
+    }
+
+    stationaryWalls
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       0.01;
+
+        surfaceFormat       vtp;
+        fields              (p U alpha.water);
+
+        interpolationScheme cellPoint;  //<- default
+
+        surfaces
+        {
+            stationaryWalls
+            {
+                type            patch;
+                patches         (stationaryWalls);
+                interpolate     false;
+                triangulate     false;
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

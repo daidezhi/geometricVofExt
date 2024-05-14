@@ -1,0 +1,144 @@
+#!/bin/bash
+# Run from geometricVofExt top-level directory only
+cd "${0%/*}" || exit
+wmake -check-dir "$WM_PROJECT_USER_DIR/modules/geometricVofExt" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_PROJECT_USER_DIR/modules/geometricVofExt"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+#------------------------------------------------------------------------------
+
+echo
+echo "**** Enable Reconstruction Time Tracking in IsoAdvector (optional) *****"
+echo
+
+echo " >> Modifiy transportModels/geometricVoF/isoAdvection/isoAdvection.H"
+
+[ -f ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvection_old.H ] || cp ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvection.H ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvection_old.H
+
+awk '
+    BEGIN {
+        in_section1 = 0
+        in_section2 = 0
+    }
+    /surfaceScalarField alphaPhi_;/ {
+        print "        surfaceScalarField alphaPhi_;"
+        print ""
+        print "        //- Time spent performing interface reconstruction"
+        print "        scalar reconstructionTime_;"
+        print ""
+
+        in_section1 = 1
+        next
+    }
+    /\/\/- Time spent performing interface advection/ && in_section1 {
+        print
+        in_section1 = 0
+        next
+    }
+    /return alphaPhi_;/ {
+        print "                return alphaPhi_;"
+        print "            }"
+        print ""
+        print "            //- time spend in the reconstruction step"
+        print "            scalar reconstructionTime() const noexcept"
+        print "            {"
+        print "                return reconstructionTime_;"
+        print "            }"
+        print ""
+
+        in_section2 = 1
+        next
+    }
+    /\/\/- time spend in the advection step/ && in_section2 {
+        print
+        in_section2 = 0
+        next
+    }
+    !in_section1 && !in_section2 {
+        print
+    }
+' ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvection_old.H > ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvection.H
+
+
+
+
+echo " >> Modifiy transportModels/geometricVoF/isoAdvection/isoAdvection.C"
+
+[ -f ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvection_old.C ] || cp ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvection.C ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvection_old.C
+
+awk '
+    BEGIN {
+        in_section = 0
+    }
+    /advectionTime_\(0\),/ {
+        print "    reconstructionTime_(0),"
+        print "    advectionTime_(0),"
+
+        in_section = 1
+        next
+    }
+    /timeIndex_\(-1\),/ && in_section {
+        print
+        in_section = 0
+        next
+    }
+    !in_section {
+        print
+    }
+' ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvection_old.C > ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvection.C
+
+
+
+
+echo " >> Modifiy transportModels/geometricVoF/isoAdvection/isoAdvectionTemplates.C"
+
+[ -f ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvectionTemplates_old.C ] || cp ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvectionTemplates.C ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvectionTemplates_old.C
+
+awk '
+    BEGIN {
+        in_section = 0
+    }
+    /scalar advectionStartTime = mesh_.time\(\).elapsedCpuTime\(\);/ {
+        print "    // " $0
+        print ""
+        print "    const scalar rDeltaT = 1.0/mesh_.time().deltaTValue();"
+        print ""
+        print "    // reconstruct the interface"
+        print "    scalar reconstructionStartTime = mesh_.time().elapsedCpuTime();"
+        print "    surf_->reconstruct();"
+        print "    reconstructionTime_ += (mesh_.time().elapsedCpuTime() - reconstructionStartTime);"
+        print ""
+        print "    if (timeIndex_ < mesh_.time().timeIndex())"
+        print "    {"
+        print "        timeIndex_= mesh_.time().timeIndex();"
+        print "        surf_->normal().oldTime() = surf_->normal();"
+        print "        surf_->centre().oldTime() = surf_->centre();"
+        print "    }"
+        print ""
+        print "    scalar advectionStartTime = mesh_.time().elapsedCpuTime();"
+        print ""
+
+        in_section = 1
+        next
+    }
+    /\/\/ Initialising dVf with upwind values/ && in_section {
+        print
+        in_section = 0
+        next
+    }
+    !in_section {
+        print
+    }
+' ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvectionTemplates_old.C > ${WM_PROJECT_DIR}/src/transportModels/geometricVoF/advectionSchemes/isoAdvection/isoAdvectionTemplates.C
+
+
+
+echo
+echo -n " >> " && wmake libso ${WM_PROJECT_DIR}/src/transportModels/geometricVoF
+
+echo
+echo "********************************* Done *********************************"
+echo
+
+#------------------------------------------------------------------------------

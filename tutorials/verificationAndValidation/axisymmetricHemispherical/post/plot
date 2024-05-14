@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+plot_meshIndependence() {
+
+    image="plots/cp_meshIndependence.png"
+    gnuplot<<EOF
+    reset
+
+    set terminal pngcairo font "helvetica,12" size 7in,5in
+    set grid
+    set xrange [0:6]
+    set yrange [-0.4:1.2]
+    set xlabel "s/D"
+    set ylabel "c_p"
+    set output "$image"
+
+    set title "Mesh independence study ({/Symbol s} = 0.2)"
+
+    plot \
+        "meshIndependence/coarse.dat" \
+            w lines lw 1.5 dt 4 lt 6 lc rgb "black" t "coarse mesh", \
+        "meshIndependence/medium.dat" \
+            w lines lw 1.5      lt 2 lc rgb "blue"  t "medium mesh", \
+        "meshIndependence/fine.dat" \
+            w lines lw 1.5 dt 2 lt 7 lc rgb "red"   t "fine mesh"
+EOF
+}
+#------------------------------------------------------------------------------
+
+
+#------------------------------------------------------------------------------
+plot_benckmark() {
+
+    image="plots/cp_benckmark.png"
+    gnuplot<<EOF
+    reset
+
+    set terminal pngcairo font "helvetica,12" size 7in,6in
+    set grid
+    set xrange [0:6]
+    set yrange [-0.5:1.2]
+    set xlabel "s/D"
+    set ylabel "c_p"
+    set output "$image"
+
+    set title "c_p distributions along structure surface"
+
+    plot \
+        "expData/cavNum02.dat" \
+            w points pt 13 ps 1.4 lc rgb "red" t   "Exp. ({/Symbol s}=0.2)", \
+        "expData/cavNum03.dat" \
+            w points pt 7 ps 1.3 lc rgb "blue" t  "Exp. ({/Symbol s}=0.3)", \
+        "expData/cavNum04.dat" \
+            w points pt 9 ps 1.3 lc rgb "black" t "Exp. ({/Symbol s}=0.4)", \
+        "interPlicPhaseChangeFoam/cavNum02.dat" \
+            w lines lw 1.25 lc rgb "red" \
+            t "interPlicPhaseChangeFoam ({/Symbol s}=0.2)", \
+        "interPhaseChangeFoam/cavNum02.dat" \
+            w lines lw 1.25 dt 2 lc rgb "red" \
+            t "interPhaseChangeFoam ({/Symbol s}=0.2)", \
+        "interPlicPhaseChangeFoam/cavNum03.dat" \
+            w lines lw 1.25 lc rgb "blue" \
+            t "interPlicPhaseChangeFoam ({/Symbol s}=0.3)", \
+        "interPhaseChangeFoam/cavNum03.dat" \
+            w lines lw 1.25 dt 2 lc rgb "blue" \
+            t "interPhaseChangeFoam ({/Symbol s}=0.3)", \
+        "interPlicPhaseChangeFoam/cavNum04.dat" \
+            w lines lw 1.25 lc rgb "black" \
+            t "interPlicPhaseChangeFoam ({/Symbol s}=0.4)", \
+        "interPhaseChangeFoam/cavNum04.dat" \
+            w lines lw 1.25 dt 2 lc rgb "black" \
+            t "interPhaseChangeFoam ({/Symbol s}=0.4)"
+EOF
+}
+#------------------------------------------------------------------------------
+
+
+# Requires gnuplot ------------------------------------------------------------
+command -v gnuplot >/dev/null || {
+    echo "FOAM FATAL ERROR: gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+#------------------------------------------------------------------------------
+
+
+#------------------------------------------------------------------------------
+[ -d plots ] || mkdir plots
+
+plot_meshIndependence
+
+plot_benckmark
+#------------------------------------------------------------------------------

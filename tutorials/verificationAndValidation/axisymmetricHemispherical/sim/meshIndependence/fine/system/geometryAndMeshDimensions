@@ -1,0 +1,26 @@
+// For blockMesh
+R           0.0125; // Spherical top radius
+D           #eval{ 2.0 * $R };   // Spherical top diameter
+
+length      0.2876;
+width       #eval{ 0.1 + 0.0001 };  // Expand with a small distance
+height      $width;
+
+xMin        -0.1146;
+xMax        #eval{ $length + $xMin };
+
+yMin        0.0;
+yMax        $width;
+
+zMin        0.0;
+zMax        $height;
+
+ds          0.0025;  // Base size
+nx          #calc "round($length / $ds)";
+ny          #calc "round($width  / $ds)";
+nz          #calc "round($height / $ds)";
+
+
+// For snappyHexMesh
+wallLevel   2;
+nLayers     5;

@@ -1,0 +1,17 @@
+cut/cutFace/cutFace.C
+cut/cutCell/cutCell.C
+
+reconstruction/reconstructedDistanceFunction.C
+reconstruction/reconstruction.C
+
+advection/advection.C
+
+solveVofEqu/solveVofEqu.C
+
+sampling/surface/plicSurface/plicSurface.C
+sampling/surface/reconstructedSubcellFaces/reconstructedSubcellFaces.C
+
+sampling/sampledSurface/sampledPlicSurface/sampledPlicSurface.C
+sampling/sampledSurface/sampledReconstructedSubcellFaces/sampledReconstructedSubcellFaces.C
+
+LIB = $(FOAM_USER_LIBBIN)/libSimPLIC

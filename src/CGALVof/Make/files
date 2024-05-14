@@ -1,0 +1,5 @@
+CGALSurfaceMesh/CGALSurfaceMesh.C
+surfaceMeshBooleanOperation/surfaceMeshBooleanOperation.C
+cellToSurfaceMeshLocation/cellToSurfaceMeshLocation.C
+
+LIB = $(FOAM_USER_LIBBIN)/libCGALVof

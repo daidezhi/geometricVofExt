@@ -1,0 +1,29 @@
+CGAL_EXACT = /*-DCGAL_DONT_USE_LAZY_KERNEL*/
+CGAL_INEXACT = -DCGAL_INEXACT
+
+include $(GENERAL_RULES)/CGAL
+
+c++CGALWARN = -Wno-old-style-cast
+
+EXE_INC =  \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/fileFormats/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/dynamicFvMesh/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -ICGALVof/lnInclude \
+    ${CGAL_EXACT} \
+    ${CGAL_INEXACT} \
+    ${CGAL_INC} \
+    ${c++CGALWARN} \
+    -fopenmp \
+    -frounding-math
+
+EXE_LIBS = \
+    ${CGAL_LIBS} \
+    -lfiniteVolume \
+    -lfileFormats \
+    -lsurfMesh \
+    -ldynamicFvMesh \
+    -lmeshTools

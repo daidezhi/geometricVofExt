@@ -1,0 +1,140 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2312                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+FoamFile
+{
+    version         2;
+    format          ascii;
+    class           dictionary;
+    location        "system";
+    object          setShapedFieldsDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+triangulationScheme     "fan";
+extraBooleanCheck       false;
+
+defaultFieldValues
+(
+    volScalarFieldValue T 300
+    volVectorFieldValue U (0 0 0)
+);
+
+shapes
+{
+    bunny
+    {
+        type        file;
+        path        "./constant/triSurface/bunny.stl";
+        scale       0.0005;
+        translate   (0.6 0.0 0.5);
+        rotate      (90 0 0);
+
+        fieldValues
+        (
+            volScalarFieldValue T 400
+            volVectorFieldValue U (0 0 -7)
+        );
+    }
+
+    box1
+    {
+        type            box;
+        min             (1.24 0.24 0.24);
+        max             (1.76 0.76 0.76);
+
+        fieldValues
+        (
+            volScalarFieldValue T 500
+            volVectorFieldValue U (0 0 -6)
+        );
+    }
+
+    sphere1
+    {
+        type            sphere;
+        radius          0.33;
+        centre          (2.5 0.5 0.5);
+        subdivision     4;
+
+        fieldValues
+        (
+            volScalarFieldValue T 600
+            volVectorFieldValue U (0 0 -5)
+        );
+    }
+
+    cylinder1
+    {
+        type            cylinder;
+        point1          (3.5 0.5 0.24);
+        point2          (3.5 0.5 0.76);
+        radius          0.35;
+        vertices        32;
+
+        fieldValues
+        (
+            volScalarFieldValue T 700
+            volVectorFieldValue U (0 0 -4)
+        );
+    }
+
+    cylinder2
+    {
+        type            cylinder;
+        point1          (4.5 0.5 0.24);
+        point2          (4.5 0.5 0.76);
+        radius          0.35;
+        innerRadius     0.125;
+        vertices        32;
+
+        fieldValues
+        (
+            volScalarFieldValue T 800
+            volVectorFieldValue U (0 0 -3)
+        );
+    }
+
+    cone1
+    {
+        type            cone;
+        point1          (5.5 0.5 0.24);
+        point2          (5.5 0.5 0.76);
+        radius1         0.35;
+        radius2         0.25;
+        vertices        32;
+
+        fieldValues
+        (
+            volScalarFieldValue T 900
+            volVectorFieldValue U (0 0 -2)
+        );
+    }
+
+    cone2
+    {
+        type            cone;
+        point1          (6.5 0.5 0.24);
+        point2          (6.5 0.5 0.76);
+        radius1         0.35;
+        innerRadius1    0.15;
+        radius2         0.25;
+        innerRadius2    0.1;
+        vertices        32;
+
+        fieldValues
+        (
+            volScalarFieldValue T 1000
+            volVectorFieldValue U (0 0 -1)
+        );
+    }
+}
+
+
+// ************************************************************************* //

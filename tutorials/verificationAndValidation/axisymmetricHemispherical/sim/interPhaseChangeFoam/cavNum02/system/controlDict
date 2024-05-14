@@ -1,0 +1,205 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2312                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     interPhaseChangeFoam;
+
+startFrom       latestTime;
+startTime       0;
+stopAt          endTime;
+endTime         0.5;
+deltaT          1e-5;
+
+writeControl    adjustable;
+writeInterval   0.1;
+purgeWrite      0;
+writeFormat     binary;
+writePrecision  9;
+writeCompression off;
+
+timeFormat      general;
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+maxCo           1.0;
+maxAlphaCo      0.5;
+minDeltaT       1e-7;
+maxDeltaT       1;
+
+
+functions
+{
+    fieldAverage1
+    {
+        type            fieldAverage;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
+        timeStart       0.1;
+        timeEnd         0.5;
+        fields
+        (
+            U
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+
+            p
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+
+            alpha.water
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+        );
+    }
+
+    isoInterface
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       0.002;
+
+        surfaceFormat       vtp;
+        fields              ( U p );
+
+        interpolationScheme cellPoint;
+
+        surfaces
+        (
+            isoSurf
+            {
+                type        isoSurfaceTopo;
+                isoField    alpha.water;
+                isoValue    0.5;
+                interpolate true;
+            }
+        );
+    }
+
+    symmYMin
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       0.002;
+
+        surfaceFormat       vtp;
+        fields              ( p pMean U UMean alpha.water alpha.waterMean );
+
+        interpolationScheme cellPoint;
+
+        surfaces
+        (
+            symmYMin
+            {
+                type        patch;
+                patches     (symmYMin);
+                interpolate false;
+            }
+        );
+    }
+
+    symmZMin
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       0.002;
+
+        surfaceFormat       vtp;
+        fields              ( p pMean U UMean alpha.water alpha.waterMean );
+
+        interpolationScheme cellPoint;
+
+        surfaces
+        (
+            symmZMin
+            {
+                type        patch;
+                patches     (symmZMin);
+                interpolate false;
+            }
+        );
+    }
+
+    body
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       0.002;
+
+        surfaceFormat       vtp;
+        fields              ( p pMean U UMean alpha.water alpha.waterMean );
+
+        interpolationScheme cellPoint;
+
+        surfaces
+        (
+            body
+            {
+                type        patch;
+                patches     (bodySide bodyTop);
+                interpolate true;
+            }
+        );
+    }
+
+    structureSurface
+    {
+        type                sets;
+        libs                (sampling);
+        writeControl        runTime;
+        writeInterval       0.5;
+
+        fields              ( pMean );
+        interpolationScheme cellPoint;
+
+        setFormat           raw;
+
+        sets
+        (
+            structureSurface
+            {
+                type        patchEdge;
+                axis        x;
+                patches     (bodySide bodyTop);
+
+                surfaceType searchablePlane;
+                planeType   pointAndNormal;
+                pointAndNormalDict
+                {
+                    point   (0  0 0);
+                    normal  (0 -1 1);
+                }
+
+                origin      (0 0 0);
+            }
+        );
+    }
+}
+
+// ************************************************************************* //

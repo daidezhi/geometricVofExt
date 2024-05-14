@@ -1,0 +1,265 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2312                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include        "./system/geometryAndMeshDimensions"
+
+castellatedMesh true;
+snap            true;
+addLayers       true;
+
+wallLevel       2;
+
+geometry
+{
+    atmosphere.stl
+    {
+        type                triSurfaceMesh;
+        name                atmosphere;
+        appendRegionName    false;
+    }
+
+    inlet.stl
+    {
+        type                triSurfaceMesh;
+        name                inlet;
+        appendRegionName    false;
+    }
+
+    bottom.stl
+    {
+        type                triSurfaceMesh;
+        name                bottom;
+        appendRegionName    false;
+    }
+
+    pipeSide.stl
+    {
+        type                triSurfaceMesh;
+        name                pipeSide;
+        appendRegionName    false;
+    }
+
+    tankSide.stl
+    {
+        type                triSurfaceMesh;
+        name                tankSide;
+        appendRegionName    false;
+    }
+
+    refinementCylinder1
+    {
+        type                searchableCylinder;
+        point1              (0 0 -0.11);
+        point2              (0 0 0);
+        radius              0.06;
+    }
+};
+
+castellatedMeshControls
+{
+    maxLocalCells               1000000;
+    maxGlobalCells              4000000;
+    minRefinementCells          0;
+    nCellsBetweenLevels         1;
+    maxLoadUnbalance            0.1;
+    allowFreeStandingZoneFaces  true;
+    resolveFeatureAngle         10.0;
+    planarAngle                 30.0;
+
+    features
+    (
+        {
+            file                    tankSide.extendedFeatureEdgeMesh;
+            levels                  (( 0 $wallLevel ));
+            refineFeatureEdgesOnly  true;
+        }
+
+        {
+            file                    atmosphere.extendedFeatureEdgeMesh;
+            levels                  (( 0 $wallLevel ));
+            refineFeatureEdgesOnly  true;
+        }
+
+        {
+            file                    bottom.extendedFeatureEdgeMesh;
+            levels                  (( 0 $wallLevel ));
+            refineFeatureEdgesOnly  true;
+        }
+
+        {
+            file                    inlet.extendedFeatureEdgeMesh;
+            levels                  (( 0 $wallLevel ));
+            refineFeatureEdgesOnly  true;
+        }
+
+        {
+            file                    pipeSide.extendedFeatureEdgeMesh;
+            levels                  (( 0 $wallLevel ));
+            refineFeatureEdgesOnly  true;
+        }
+    );
+
+    refinementSurfaces
+    {
+        tankSide
+        {
+            level ( $wallLevel $wallLevel );
+        }
+
+        atmosphere
+        {
+            level ( 0 0 );
+        }
+
+        bottom
+        {
+            level ( $wallLevel $wallLevel );
+        }
+
+        pipeSide
+        {
+            level ( $wallLevel $wallLevel );
+        }
+
+        inlet
+        {
+            level ( $wallLevel $wallLevel );
+        }
+    }
+
+    refinementRegions
+    {
+        refinementCylinder1
+        {
+            mode    inside;
+            levels  ((1E15 $wallLevel));
+        }
+    }
+
+    locationInMesh  ( 0.0 0.0 0.2 ) ;
+}
+
+snapControls
+{
+    tolerance               2;
+    implicitFeatureSnap     false;
+    explicitFeatureSnap     true;
+    multiRegionFeatureSnap  true;
+    detectNearSurfacesSnap  true;
+    nSmoothPatch            3;
+    nSolveIter              50;
+    nRelaxIter              5;
+    nFeatureSnapIter        10;
+    nSmoothInternal         3;
+    nFaceSplitInterval      15;
+}
+
+addLayersControls
+{
+    relativeSizes               true;
+    expansionRatio              1.25;
+    firstLayerThickness         0.25;
+    //finalLayerThickness         0.2;
+    minThickness                0.01;
+    nGrow                       0;
+    featureAngle                180.0;
+    slipFeatureAngle            10.0;
+    nRelaxIter                  10;
+    nSmoothSurfaceNormals       5;
+    nSmoothNormals              3;
+    nSmoothThickness            10;
+    maxFaceThicknessRatio       0.5;
+    maxThicknessToMedialRatio   0.3;
+    minMedialAxisAngle          90;
+    nBufferCellsNoExtrude       0;
+    nLayerIter                  50;
+    nRelaxedIter                20;
+    mergePatchFacesAngle        5.0;
+    concaveAngle                10.0;
+    layerTerminationAngle       -180;
+
+    layers
+    {
+        pipeSide
+        {
+            nSurfaceLayers      2;
+            //expansionRatio      1.2;
+            //firstLayerThickness 0.1;
+        }
+
+        bottom
+        {
+            nSurfaceLayers      2;
+            //expansionRatio      1.2;
+            //firstLayerThickness 0.1;
+        }
+
+        tankSide
+        {
+            nSurfaceLayers      2;
+            //expansionRatio      1.2;
+            //firstLayerThickness 0.1;
+        }
+    }
+}
+
+meshQualityControls
+{
+    minVol              1e-13;
+    minTetQuality       1e-16;
+    minArea             1e-13;
+    minTwist            0.05;
+    minDeterminant      1e-06;
+    minFaceWeight       0.02;
+    minVolRatio         0.01;
+    minTriangleTwist    -1;
+    minFlatness         0.5;
+    maxNonOrtho         60.0;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave          80;
+    nSmoothScale        4;
+    errorReduction      0.75;
+
+    relaxed
+    {
+        minVol              1e-30;
+        minTetQuality       1e-30;
+        minArea             1e-30;
+        minTwist            0.001;
+        minDeterminant      1e-06;
+        minFaceWeight       1e-06;
+        minVolRatio         0.01;
+        minTriangleTwist    -1;
+        minFlatness         0.5;
+        maxNonOrtho         75;
+        maxBoundarySkewness 20;
+        maxInternalSkewness 8;
+        maxConcave          80;
+        nSmoothScale        4;
+        errorReduction      0.75;
+    }
+}
+
+//writeFlags      ( scalarLevels );
+
+mergeTolerance  1e-08;
+
+debug           0;
+
+
+// ************************************************************************* //

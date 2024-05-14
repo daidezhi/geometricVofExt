@@ -1,0 +1,98 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2312                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "alpha.water.*"
+    {
+        nAlphaBounds        3;
+
+        mixedCellTol        1e-10;
+        snapTol             1e-12;
+        clip                true;
+
+        orientationMethod   LS; //RDF
+        splitWarpedFace     false;
+        writePlicFields     false;
+        mapAlphaField       true;
+
+        nAlphaSubCycles     1;
+        cAlpha              1;
+    };
+
+    "U.*|k.*|T.*"
+    {
+        solver              PBiCGStab;
+        preconditioner      DILU;
+        tolerance           1e-05;
+        relTol              0;
+        minIter             1;
+    }
+
+    p_rgh
+    {
+        solver              PBiCGStab;
+        preconditioner      DIC;
+        tolerance           1e-05;
+        relTol              0.01;
+        minIter             1;
+    };
+
+    p_rghFinal
+    {
+        $p_rgh;
+        tolerance           1e-06;
+        relTol              0;
+        minIter             1;
+    };
+
+    "pcorr.*"
+    {
+        $p_rgh;
+        relTol              0;
+        minIter             1;
+    };
+
+    Phi
+    {
+        $p_rgh;
+        relTol              0;
+        minIter             1;
+    };
+}
+
+potentialFlow
+{
+    nNonOrthogonalCorrectors   3;
+}
+
+PIMPLE
+{
+    momentumPredictor           no;
+    nOuterCorrectors            1;
+    nCorrectors                 20;
+    nNonOrthogonalCorrectors    0;
+}
+
+relaxationFactors
+{
+    equations
+    {
+    }
+}
+
+
+// ************************************************************************* //

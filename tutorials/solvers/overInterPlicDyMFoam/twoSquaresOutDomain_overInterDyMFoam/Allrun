@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+runApplication decomposePar -cellDist -fileHandler collated
+
+runParallel  $(getApplication) -fileHandler collated
+
+writeVtkSeries plicInterface
+writeVtkSeries isoInterface
+writeVtkSeries hole
+writeVtkSeries zPlaneCut
+
+touch ${PWD##*/}.foam
+
+#------------------------------------------------------------------------------

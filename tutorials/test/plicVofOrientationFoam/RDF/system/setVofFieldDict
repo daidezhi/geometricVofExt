@@ -1,0 +1,41 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2312                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+FoamFile
+{
+    version         2;
+    format          ascii;
+    class           dictionary;
+    location        "system";
+    object          setVofFieldDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+field                   "alpha.water";
+initial                 0.0;
+snapTol                 1e-15;
+
+triangulationScheme     "centroid";
+extraBooleanCheck       false;
+
+exportPlicSurface       false;
+exportIsoSurface        false;
+writeShapes             false;
+
+shapes
+{
+    refShape1
+    {
+        type            file;
+        path            "../../toolSurfaceMesh/0/shape.stlb";
+    }
+}
+
+
+// ************************************************************************* //

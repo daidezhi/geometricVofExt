@@ -1,0 +1,27 @@
+#!/bin/sh
+# Run from geometricVofExt top-level directory only
+cd "${0%/*}" || exit
+wmake -check-dir "$WM_PROJECT_USER_DIR/modules/geometricVofExt" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_PROJECT_USER_DIR/modules/geometricVofExt"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+#------------------------------------------------------------------------------
+
+echo
+echo "**************** Enable initial time writing (optional) ****************"
+echo
+
+echo " >> Modifiy functionObjects/timeControl/timeControlFunctionObject.C"
+
+sed -i 's/if (active() \&\& (postProcess || executeControl_.execute()))/if (active() \&\& (postProcess || executeControl_.execute() || (time_.timeIndex() == time_.startTimeIndex())))/g' ${WM_PROJECT_DIR}/src/OpenFOAM/db/functionObjects/timeControl/timeControlFunctionObject.C
+
+sed -i 's/if (active() \&\& (postProcess || writeControl_.execute()))/if (active() \&\& (postProcess || writeControl_.execute() || (time_.timeIndex() == time_.startTimeIndex())))/g' ${WM_PROJECT_DIR}/src/OpenFOAM/db/functionObjects/timeControl/timeControlFunctionObject.C
+
+echo -n " >> " && wmake libso ${WM_PROJECT_DIR}/src/OpenFOAM
+
+echo
+echo "********************************* Done *********************************"
+echo
+
+#------------------------------------------------------------------------------
