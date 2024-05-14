@@ -1,14 +1,15 @@
 <h1 align="center"><img src="./images/logo_alpha.png" width="160px"><br><tt>geometricVofExt</tt></h1>
 
-![](https://flat.badgen.net/badge/OpenFOAM/v2312/blue?icon=&scale=1.0)
-![](https://flat.badgen.net/github/license/daidezhi/geometricVofExt?scale=1.0&label=License)
-![](https://flat.badgen.net/github/tags/daidezhi/geometricVofExt?scale=1.0&label=Tags)
-![](https://flat.badgen.net/github/tag/daidezhi/geometricVofExt?scale=1.0&label=Latest%20tag)
-![](https://flat.badgen.net/github/open-issues/daidezhi/geometricVofExt?scale=1.0&label=Open%20issues)
-![](https://flat.badgen.net/github/commits/daidezhi/geometricVofExt/?scale=1.0&label=Commits)
-![](https://flat.badgen.net/github/last-commit/daidezhi/geometricVofExt/?scale=1.0&label=Last%20commit)
-![](https://flat.badgen.net/github/stars/daidezhi/geometricVofExt?scale=1.0&label=Stars)
-<!-- ![](https://flat.badgen.net/github/forks/daidezhi/geometricVofExt?scale=1.0&label=Forks) -->
+![](https://flat.badgen.net/badge/OpenFOAM/v2312/blue?icon=&)
+![](https://flat.badgen.net/github/license/daidezhi/geometricVofExt/?&label=License)
+![](https://flat.badgen.net/github/tags/daidezhi/geometricVofExt/&label=Tags)
+![](https://flat.badgen.net/github/tag/daidezhi/geometricVofExt/?&label=Latest%20tag)
+![](https://flat.badgen.net/github/open-issues/daidezhi/geometricVofExt/?&label=Open%20issues)
+![](https://flat.badgen.net/github/commits/daidezhi/geometricVofExt/?&label=Commits)
+![](https://flat.badgen.net/github/last-commit/daidezhi/geometricVofExt/?&label=Last%20commit)
+![](https://flat.badgen.net/github/stars/daidezhi/geometricVofExt/?&label=Stars)
+
+<!-- ![](https://flat.badgen.net/github/forks/daidezhi/geometricVofExt?&label=Forks) -->
 
 
 ## Overview
