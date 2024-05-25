@@ -8,6 +8,7 @@
 ![](https://flat.badgen.net/github/commits/daidezhi/geometricVofExt/?&label=Commits)
 ![](https://flat.badgen.net/github/last-commit/daidezhi/geometricVofExt/?&label=Last%20commit)
 ![](https://flat.badgen.net/github/stars/daidezhi/geometricVofExt/?&label=Stars)
+[![DOI](https://zenodo.org/badge/754320637.svg)](https://zenodo.org/doi/10.5281/zenodo.11212396)
 
 <!-- ![](https://flat.badgen.net/github/forks/daidezhi/geometricVofExt?&label=Forks) -->
 
@@ -135,6 +136,16 @@ source <installation path>/OpenFOAM-v2312/etc/bashrc
 cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
 
 ./checkCGAL
+```
+
+:warning: **IMPORTANT** :warning: The GNU Multiple Precision Arithmetic (`GMP`) and GNU Multiple Precision Floating-Point Reliably (`MPFR`) Libraries are highly recommended for use with `CGAL`. Otherwise, the `setVofField` and `setShapedFields` utilities will operate in a low-efficiency mode. If you are using a GCC compiler, one potential solution is:
+
+```shell
+source <installation path>/OpenFOAM-v2312/etc/bashrc
+
+cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
+
+./compileCGALWithGMPAndMPFRUsingSystemGCC
 ```
 
 * (Optional) Enable the utilities and solvers to produce iso-surfaces/plic-surfaces at the initial time (*e.g.*, $t = 0$):

@@ -1,0 +1,63 @@
+#!/bin/bash
+# Run from geometricVofExt top-level directory only
+cd "${0%/*}" || exit
+wmake -check-dir "$WM_PROJECT_USER_DIR/modules/geometricVofExt" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_PROJECT_USER_DIR/modules/geometricVofExt"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+#------------------------------------------------------------------------------
+
+echo
+echo "*********** Compile CGAL with GMP and MPFR Using System GCC ************"
+echo
+
+# Modify $WM_PROJECT_DIR/etc/config.sh/compiler
+grep -Fxq "system)" $WM_PROJECT_DIR/etc/config.sh/compiler || \
+sed '/^case "$WM_COMPILER_TYPE" in$/r'<(
+    echo "system)"
+    echo "    gmp_version=gmp-6.2.1"
+    echo "    mpfr_version=mpfr-4.1.0"
+    echo "    mpc_version=mpc-1.2.1"
+    echo "    ;;"
+) -i -- $WM_PROJECT_DIR/etc/config.sh/compiler
+
+
+cd $WM_THIRD_PARTY_DIR
+
+
+# Download and unpack GMP, MPFR and MPC
+[ -f gmp-6.2.1.tar.xz ] || wget -nv https://gmplib.org/download/gmp/gmp-6.2.1.tar.xz --no-check-certificate
+[ -d gmp-6.2.1 ] || tar -xf gmp-6.2.1.tar.xz
+
+[ -f mpfr-4.1.0.tar.gz ] || wget -nv https://ftp.gnu.org/gnu/mpfr/mpfr-4.1.0.tar.gz --no-check-certificate
+[ -d mpfr-4.1.0 ] || tar -xzf mpfr-4.1.0.tar.gz
+
+[ -f mpc-1.2.1.tar.gz ] || wget -nv https://ftp.gnu.org/gnu/mpc/mpc-1.2.1.tar.gz --no-check-certificate
+[ -d mpc-1.2.1 ] || tar -xzf mpc-1.2.1.tar.gz
+
+
+# Remove old build
+rm -rf ./build/$WM_ARCH/gmp-6.2.1
+rm -rf ./build/$WM_ARCH/mpc-1.2.1
+rm -rf ./build/$WM_ARCH/mpfr-4.1.0
+
+rm -rf ./platforms/$WM_ARCH/gmp-6.2.1
+rm -rf ./platforms/$WM_ARCH/mpc-1.2.1
+rm -rf ./platforms/$WM_ARCH/mpfr-4.1.0
+
+rm -rf ./build/$WM_ARCH$WM_COMPILER/CGAL-*
+
+rm -rf ./platforms/$WM_ARCH$WM_COMPILER/boost_*
+rm -rf ./platforms/$WM_ARCH$WM_COMPILER/CGAL-*
+
+
+# Build
+./makeGcc gcc-system gmp-6.2.1 mpfr-4.1.0 mpc-1.2.1
+./makeCGAL -with-lib gmp-6.2.1 mpfr-4.1.0
+
+echo
+echo "********************************* Done *********************************"
+echo
+
+#------------------------------------------------------------------------------
