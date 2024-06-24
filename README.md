@@ -159,7 +159,7 @@ cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
 ./enableInitialTimeWriting
 ```
 
-* Compile libraries, utilities and solvers of `geometricVofExt` (*It is important to mention that the Gnu Scientific Library (GSL) `2.7.1` is locally compiled for HPC users.*):
+* Compile libraries, utilities and solvers of `geometricVofExt`:
 
 ```shell
 source <installation path>/OpenFOAM-v2312/etc/bashrc
@@ -169,7 +169,7 @@ cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
 ./Allwmake -j4
 ```
 
-* (Optional) Build `waves2Foam` library and `wavePlicFoam` solver:
+* (Optional) Build `waves2Foam` library and `wavePlicFoam` solver (*It is important to mention that the Gnu Scientific Library (GSL) `2.7.1` is locally compiled for HPC users.*):
 ```shell
 source <installation path>/OpenFOAM-v2312/etc/bashrc
 
