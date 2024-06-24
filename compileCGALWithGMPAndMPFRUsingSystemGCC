@@ -13,14 +13,71 @@ echo "*********** Compile CGAL with GMP and MPFR Using System GCC ************"
 echo
 
 # Modify $WM_PROJECT_DIR/etc/config.sh/compiler
-grep -Fxq "system)" $WM_PROJECT_DIR/etc/config.sh/compiler || \
-sed '/^case "$WM_COMPILER_TYPE" in$/r'<(
-    echo "system)"
-    echo "    gmp_version=gmp-6.2.1"
-    echo "    mpfr_version=mpfr-4.1.0"
-    echo "    mpc_version=mpc-1.2.1"
-    echo "    ;;"
-) -i -- $WM_PROJECT_DIR/etc/config.sh/compiler
+[ -f $WM_PROJECT_DIR/etc/config.sh/compiler_backup ] || cp $WM_PROJECT_DIR/etc/config.sh/compiler $WM_PROJECT_DIR/etc/config.sh/compiler_backup
+
+awk '
+    BEGIN {
+        in_section = 0
+    }
+    /case "\$WM_COMPILER_TYPE" in/ {
+        print "" $0
+        print "system)"
+        print "    gmp_version=gmp-6.2.1"
+        print "    mpfr_version=mpfr-4.1.0"
+        print "    mpc_version=mpc-1.2.1"
+        print "    gsl_version=gsl-2.7.1    # used by waves2Foam"
+        print "    ;;"
+
+        in_section = 1
+        next
+    }
+    /ThirdParty)/ && in_section {
+        print
+        in_section = 0
+        next
+    }
+    !in_section {
+        print
+    }
+' $WM_PROJECT_DIR/etc/config.sh/compiler_backup > $WM_PROJECT_DIR/etc/config.sh/compiler
+
+
+# Modify $WM_PROJECT_DIR/etc/config.sh/settings
+[ -f $WM_PROJECT_DIR/etc/config.sh/settings_backup ] || cp $WM_PROJECT_DIR/etc/config.sh/settings $WM_PROJECT_DIR/etc/config.sh/settings_backup
+
+awk '
+    BEGIN {
+        in_section = 0
+    }
+    /case "\$WM_COMPILER_TYPE-\$WM_COMPILER" in/ {
+        print "" $0
+        print "system-Gcc)"
+        print "    gmpDir=\"$archDir/${gmp_version}\""
+        print "    mpfrDir=\"$archDir/${mpfr_version}\""
+        print "    mpcDir=\"$archDir/${mpc_version}\""
+        print "    gslDir=\"$archDir/${gsl_version}\"    # used by waves2Foam"
+        print "    _foamAddLibAuto \"$gmpDir\" && export GMP_ARCH_PATH=\"$gmpDir\""
+        print "    _foamAddLibAuto \"$mpfrDir\" && export MPFR_ARCH_PATH=\"$mpfrDir\""
+        print "    _foamAddLibAuto \"$mpcDir\""
+        print "    _foamAddLibAuto \"$gslDir\""
+        print "    ;;"
+
+        in_section = 1
+        next
+    }
+    /ThirdParty-Gcc\*)/ && in_section {
+        print
+        in_section = 0
+        next
+    }
+    !in_section {
+        print
+    }
+' $WM_PROJECT_DIR/etc/config.sh/settings_backup > $WM_PROJECT_DIR/etc/config.sh/settings
+
+
+# Renew env of OpenFOAM
+source $WM_PROJECT_DIR/etc/bashrc
 
 
 cd $WM_THIRD_PARTY_DIR

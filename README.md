@@ -53,7 +53,7 @@ For incompressible two-phase flows without phase change, both $S_p$ and $S_u$ ar
 
 |Scenario|Solver(s)|$S_p$|$S_u$|Note|
 |:---|:---|:---:|:---:|:---|
-|<ul><li>Incompressible</li><li>Without phase change</li></ul>|<ul><li>`interPlicFoam`</li><li>`overInterPlicDyMFoam`</li></ul>|$0$|$0$|$\nabla \cdot \mathbf{U} = 0$|
+|<ul><li>Incompressible</li><li>Without phase change</li></ul>|<ul><li>`interPlicFoam`</li><li>`overInterPlicDyMFoam`</li><li>`wavePlicFoam`</li></ul>|$0$|$0$|$\nabla \cdot \mathbf{U} = 0$|
 |<ul><li>Incompressible</li><li>Cavitation</li></ul>|<ul><li>`interPlicPhaseChangeFoam`</li><li>`overInterPlicPhaseChangeDyMFoam`</li></ul>|$\left(\nabla \cdot \mathbf{U}\right) + \dot{V}_v - \dot{V}_c$|$\dot{V}_c$|Cavitation models<ul><li>`Kunz` model</li><li>`Merkle` model</li><li>`SchnerrSauer` model</li></ul>|
 
 </div >
@@ -96,6 +96,7 @@ The following are solvers that utilize the SimPLIC method:
 |`overInterPlicDyMFoam`|<ul><li>Derived from `overInterDyMFoam` and `interPlicFoam`.</li><li>Incompressible, isothermal and immiscible fluids.</li><li>Overset (Chimera) meshes.</li></ul>|
 |`interPlicPhaseChangeFoam`|<ul><li>Derived from `interPhaseChangeFoam` and `interPlicFoam`.</li><li>Incompressible, isothermal and immiscible fluids.</li><li>Cavitating flows.</li><li>Dynamic mesh refinement.</li></ul>|
 |`overInterPlicPhaseChangeDyMFoam`|<ul><li>Derived from `overInterPhaseChangeDyMFoam` and `overInterPlicDyMFoam`.</li><li>Incompressible, isothermal and immiscible fluids.</li><li>Cavitating flows.</li><li>Overset (Chimera) meshes.</li></ul>|
+|`wavePlicFoam`|<ul><li>Solver for two-phase flows.</li><li>Incompressible, isothermal and immiscible fluids.</li><li>Employing `waves2Foam` toolbox to generate and absorb free surface water waves.</li><li>Derived from `interPlicFoam`.</li><li>Using SimPLIC method.</li><li>Dynamic mesh refinement.</li></ul>|
 
 
 ## Build `geometricVofExt`
@@ -158,12 +159,23 @@ cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
 ./enableInitialTimeWriting
 ```
 
-* Compile libraries, utilities and solvers of `geometricVofExt`:
+* Compile libraries, utilities and solvers of `geometricVofExt` (*It is important to mention that the Gnu Scientific Library (GSL) `2.7.1` is locally compiled for HPC users.*):
 
 ```shell
 source <installation path>/OpenFOAM-v2312/etc/bashrc
 
 cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
+
+./Allwmake -j4
+```
+
+* (Optional) Build `waves2Foam` library and `wavePlicFoam` solver:
+```shell
+source <installation path>/OpenFOAM-v2312/etc/bashrc
+
+cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
+
+./compileWaves2FoamInOpenFOAM2312
 
 ./Allwmake -j4
 ```
@@ -182,6 +194,10 @@ cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
 
 
 ## Gallery
+
+|<video src="https://github.com/daidezhi/geometricVofExt/assets/12741725/1855996e-3775-4d15-9a02-9aecd9340470">|
+|:---:|
+|3Dwave|
 
 |<video src="https://github.com/daidezhi/geometricVofExt/assets/12741725/f68f11a4-2387-4e0d-a0b9-78c1bf2c84df">|<video src="https://github.com/daidezhi/geometricVofExt/assets/12741725/7e643fa2-d036-4196-a890-5e377618438c">|
 |:---:|:---:|
@@ -229,6 +245,12 @@ cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
 |`twoSimpleRotors`<br>`twoSimpleRotors_overInterDyMFoam`|<video src="https://github.com/daidezhi/geometricVofExt/assets/12741725/0f23260f-f4c1-4c8e-ae44-10eb9b47a2c3">|
 |`twoSquaresOutDomain`<br>`twoSquaresOutDomain_overInterDyMFoam`|<video src="https://github.com/daidezhi/geometricVofExt/assets/12741725/b219741c-b8ac-4680-94b4-2b9dad83df30">|
 
+* `./tutorials/solvers/wavePlicFoam/`
+
+|Case|Result|Note|
+|:---|:---:|:---|
+|`3Dwavs`|<video src="https://github.com/daidezhi/geometricVofExt/assets/12741725/61ce1fd0-c73d-486a-b948-904486bb679d">|Modified from [waves2Foam](https://github.com/ogoe/waves2Foam).|
+
 * `./tutorials/solvers/overInterPlicPhaseChangeDyMFoam/`
 
 |Case|Result|
@@ -254,6 +276,7 @@ cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
 
 ## Change Log
 
+* 06/25/2024. Add support for [waves2Foam](https://github.com/ogoe/waves2Foam). The associated solver `wavePlicFoam` is also available.
 * 05/13/2024. Initial release.
 
 

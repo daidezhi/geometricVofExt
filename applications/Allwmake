@@ -33,6 +33,14 @@ echo -n "    >> " && wmake solvers/overInterPlicDyMFoam
 echo -n "    >> " && wmake solvers/interPlicPhaseChangeFoam
 echo -n "    >> " && wmake solvers/overInterPlicPhaseChangeDyMFoam
 
+if [ -f "$FOAM_USER_LIBBIN/libOceanWave3D.so" ]; then
+    echo -n "    >> " && wmake solvers/wavePlicFoam
+else
+    echo
+    echo "    >> Can't find libOceanWave3D.so, skip wavePlicFoam."
+    echo
+fi
+
 echo " >> Done"
 echo
 

@@ -1,0 +1,113 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.5                                   |
+|   \\  /    A nd           | Web:      http://www.OpenFOAM.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      environmentalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+seaLevel	        0.0;
+seaLevelAsReference false;
+
+// A list of the relaxation zones in the simulation. The parameters are given
+// in <name>Coeffs below.
+relaxationNames (inlet0 inlet1 inlet2 outlet);
+
+initializationName  outlet;
+
+inlet0Coeffs
+{
+    waveType    stokesFirst;
+    depth       5.000000;
+    phi         0.000000;
+    period      5.0;
+    direction   (1.0 0.0 0.0);
+    height      1.5;
+
+    relaxationZone
+    {
+        relaxationScheme    Spatial;
+        relaxationShape     Rectangular;
+        beachType           Empty;
+
+        relaxType           INLET;
+        startX              (-50 0.0 0);
+        endX                (0 0.0  150);
+        orientation         (1.0 0.0 0.0);
+    }
+};
+
+inlet1Coeffs
+{
+    waveType    stokesFirst;
+    depth       5.000000;
+    phi         0.000000;
+    period      5.0;
+    direction   (0.0 0.0 1.0);
+    height      1.0;
+
+    relaxationZone
+    {
+        relaxationScheme    Spatial;
+        relaxationShape     Rectangular;
+        beachType           Empty;
+
+        relaxType           INLET;
+        startX              (0 0.0 -50);
+        endX                (150 0.0  0);
+        orientation         (0.0 0.0 1.0);
+    }
+};
+
+inlet2Coeffs
+{
+    waveType    stokesFirst;
+    depth       5.000000;
+    phi         0.000000;
+    period      5.0;
+    direction  (0.0 0.0 -1.0);
+    height      0.5;
+
+    relaxationZone
+    {
+        relaxationScheme    Spatial;
+        relaxationShape     Rectangular;
+        beachType           Empty;
+
+        relaxType           INLET;
+        startX              (0 0.0 200);
+        endX                (150 0.0  150);
+        orientation         (0.0 0.0 -1.0);
+    }
+};
+
+outletCoeffs
+{
+    waveType    potentialCurrent;
+    U           (0 0 0);
+    Tsoft       2;
+
+    relaxationZone
+    {
+        relaxationScheme    Spatial;
+        relaxationShape     Rectangular;
+        beachType           Empty;
+
+        relaxType           OUTLET;
+        startX              (150 0.0    0);
+        endX                (200 0.0  150);
+        orientation         (1.0 0.0 0.0);
+    }
+};
+
+
+
+// ************************************************************************* //

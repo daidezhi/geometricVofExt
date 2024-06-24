@@ -1,0 +1,137 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.5                                   |
+|   \\  /    A nd           | Web:      http://www.OpenFOAM.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     wavePlicFoam;
+
+startFrom       latestTime;
+startTime       0;
+stopAt          endTime;
+endTime         100;
+deltaT          0.001;
+
+writeControl    adjustable;
+writeInterval   10;
+purgeWrite      0;
+writeFormat     binary;
+writePrecision  9;
+writeCompression    off;
+
+timeFormat      general;
+timePrecision   6;
+
+runTimeModifiable   yes;
+
+adjustTimeStep  yes;
+maxCo           0.25;
+maxAlphaCo      0.25;
+maxDeltaT       1;
+
+functions
+{
+    plicInterface
+    {
+        type            surfaces;
+        libs            (SimPLIC sampling);
+        writeControl    adjustableRunTime;
+        writeInterval   10;
+
+        surfaceFormat   vtp;
+        fields          ( alpha.water U p p_rgh );
+
+        interpolationScheme cell;
+
+        surfaces
+        (
+            plicSurf
+            {
+                type            plicSurface;
+                interpolate     false;
+            }
+        );
+    }
+
+    isoInterface
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       1;
+
+        surfaceFormat       vtp;
+        fields              ( U p p_rgh );
+
+        interpolationScheme cellPoint;
+
+        surfaces
+        (
+            isoSurf
+            {
+                type        isoSurfaceTopo;
+                isoField    alpha.water;
+                isoValue    0.5;
+                interpolate true;
+            }
+        );
+    }
+
+    walls
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       1;
+
+        surfaceFormat       vtp;
+        fields              ( alpha.water );
+
+        interpolationScheme cellPoint;
+
+        surfaces
+        (
+            walls
+            {
+                type        patch;
+                patches     ("bottom|internalWall");
+                interpolate true;
+            }
+        );
+    }
+
+    sides
+    {
+        type                surfaces;
+        libs                (sampling);
+        writeControl        adjustableRunTime;
+        writeInterval       1;
+
+        surfaceFormat       vtp;
+        fields              ( alpha.water );
+
+        interpolationScheme cellPoint;
+
+        surfaces
+        (
+            sides
+            {
+                type        patch;
+                patches     ("inlet0|inlet1|inlet2|outlet");
+                interpolate true;
+            }
+        );
+    }
+}
+
+// ************************************************************************* //

@@ -1,0 +1,332 @@
+#!/bin/bash
+# Run from geometricVofExt top-level directory only
+cd "${0%/*}" || exit
+wmake -check-dir "$WM_PROJECT_USER_DIR/modules/geometricVofExt" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_PROJECT_USER_DIR/modules/geometricVofExt"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+
+findSourceDir()
+{
+    local package subdir optRelative
+
+    case "$1" in
+    (-abs*)
+        optRelative=false
+        shift
+        ;;
+    (-rel*)
+        optRelative=true
+        shift
+        ;;
+    esac
+
+    for package in "$@"
+    do
+        subdir="$(basename "$package" | tr '[:upper:]' '[:lower:]' |\
+            sed -ne 's#^\([0-9]*[a-z]*\).*#\1#p')"
+
+        for check in \
+            "$package" \
+            "$subdir/$package" \
+            "sources/$package" \
+            "sources/$subdir/$package" \
+        ;
+        do
+            if [ -d "$sourceBASE/$check" ]
+            then
+                echo "Found sources: $check" 1>&2
+
+                if [ "${optRelative:-false}" = true ]
+                then
+                    echo "$check"
+                else
+                    echo "$sourceBASE/$check"
+                fi
+                return 0
+            fi
+        done
+    done
+
+    # Fallback. Report if missing (unless none or system)
+    case "${1##*-}" in
+    (none | system)
+        ;;
+    (*)
+        echo "Did not find ... $@" 1>&2
+    esac
+
+    echo "$sourceBASE/${1:-missing-package-name}"
+}
+#------------------------------------------------------------------------------
+
+
+echo
+echo "*********** Compile waves2Foam in OpenFOAM v2312 (optional) ************"
+echo
+
+#------------------------------------------------------------------------------
+# Compile GSL library 
+echo "--------------------"
+echo "    Compile GSL"
+echo "--------------------"
+echo ""
+
+# Download and unpack GSL
+cd $WM_THIRD_PARTY_DIR
+
+gsl_version=gsl-2.7.1
+GSL_PACKAGE=${gsl_version}
+
+[ -f ${gsl_version}.tar.gz ] || wget -nv https://ftp.gnu.org/gnu/gsl/${gsl_version}.tar.gz --no-check-certificate
+[ -d ${gsl_version} ] || tar -xzf ${gsl_version}.tar.gz
+
+# Prepare
+sourceBASE="$WM_THIRD_PARTY_DIR"
+buildBASE="$WM_THIRD_PARTY_DIR/build/$WM_ARCH$WM_COMPILER"
+installBASE="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER"
+
+buildBASE="$(dirname "$buildBASE")/$WM_ARCH$WM_COMPILER_ARCH"
+installBASE="$(dirname "$installBASE")/$WM_ARCH$WM_COMPILER_ARCH"
+
+GSL_SOURCE="$(findSourceDir "$GSL_PACKAGE")"
+GSL_PACKAGE="$(basename "$GSL_PACKAGE")"
+GSL_PREFIX="$installBASE/$GSL_PACKAGE"
+optArch=64
+
+# Build
+if [ -d "$GSL_PREFIX" ]; then
+    echo "Already built: $GSL_PREFIX"
+else
+    echo "Starting build: $GSL_PACKAGE"
+    echo
+(
+    PKG_SOURCE="$GSL_SOURCE"
+    PKG_PREFIX="$GSL_PREFIX"
+    PKG_BUILD="$buildBASE/$GSL_PACKAGE"
+
+    cd "$PKG_SOURCE" || exit
+    make distclean 2>/dev/null || true
+
+    rm -rf "$PKG_BUILD"
+    mkdir -p "$PKG_BUILD"
+
+    cd "$PKG_BUILD" && set -x && \
+    "$PKG_SOURCE"/configure ABI="$optArch" \
+        --prefix="$PKG_PREFIX" \
+        --libdir="$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH" \
+        --enable-cxx \
+    && set +x \
+    && make -j $WM_NCOMPPROCS \
+    && make install \
+    && echo "Built: $GSL_PACKAGE"
+) || {
+    echo "Error building: $GSL_PACKAGE"
+    exit 1
+}
+fi
+
+# Modify $WM_PROJECT_DIR/etc/config.sh/compiler
+[ -f $WM_PROJECT_DIR/etc/config.sh/compiler_backup ] || cp $WM_PROJECT_DIR/etc/config.sh/compiler $WM_PROJECT_DIR/etc/config.sh/compiler_backup
+
+awk '
+    BEGIN {
+        in_section = 0
+    }
+    /case "\$WM_COMPILER_TYPE" in/ {
+        print "" $0
+        print "system)"
+        print "    gmp_version=gmp-6.2.1"
+        print "    mpfr_version=mpfr-4.1.0"
+        print "    mpc_version=mpc-1.2.1"
+        print "    gsl_version=gsl-2.7.1    # used by waves2Foam"
+        print "    ;;"
+
+        in_section = 1
+        next
+    }
+    /ThirdParty)/ && in_section {
+        print
+        in_section = 0
+        next
+    }
+    !in_section {
+        print
+    }
+' $WM_PROJECT_DIR/etc/config.sh/compiler_backup > $WM_PROJECT_DIR/etc/config.sh/compiler
+
+
+# Modify $WM_PROJECT_DIR/etc/config.sh/settings
+[ -f $WM_PROJECT_DIR/etc/config.sh/settings_backup ] || cp $WM_PROJECT_DIR/etc/config.sh/settings $WM_PROJECT_DIR/etc/config.sh/settings_backup
+
+awk '
+    BEGIN {
+        in_section = 0
+    }
+    /case "\$WM_COMPILER_TYPE-\$WM_COMPILER" in/ {
+        print "" $0
+        print "system-Gcc)"
+        print "    gmpDir=\"$archDir/${gmp_version}\""
+        print "    mpfrDir=\"$archDir/${mpfr_version}\""
+        print "    mpcDir=\"$archDir/${mpc_version}\""
+        print "    gslDir=\"$archDir/${gsl_version}\"    # used by waves2Foam"
+        print "    _foamAddLibAuto \"$gmpDir\" && export GMP_ARCH_PATH=\"$gmpDir\""
+        print "    _foamAddLibAuto \"$mpfrDir\" && export MPFR_ARCH_PATH=\"$mpfrDir\""
+        print "    _foamAddLibAuto \"$mpcDir\""
+        print "    _foamAddLibAuto \"$gslDir\""
+        print "    ;;"
+
+        in_section = 1
+        next
+    }
+    /ThirdParty-Gcc\*)/ && in_section {
+        print
+        in_section = 0
+        next
+    }
+    !in_section {
+        print
+    }
+' $WM_PROJECT_DIR/etc/config.sh/settings_backup > $WM_PROJECT_DIR/etc/config.sh/settings
+
+
+# Renew env of OpenFOAM
+source $WM_PROJECT_DIR/etc/bashrc
+#------------------------------------------------------------------------------
+
+
+#------------------------------------------------------------------------------
+# Go to $WM_PROJECT_USER_DIR/applications/utilities and download waves2Foam
+echo ""
+echo "------------------------------------------"
+echo "    Download source code of waves2Foam"
+echo "------------------------------------------"
+echo ""
+
+cd $WM_PROJECT_USER_DIR/applications/utilities
+
+[ -d waves2Foam ] || git clone https://github.com/ogoe/waves2Foam.git
+
+
+# Modify settings of LAPACK, SPARSKIT and OceanWave3D
+echo ""
+echo "------------------------------------------"
+echo "    Modify ThirdParty settings"
+echo "------------------------------------------"
+echo ""
+
+echo " >> Modifiy waves2Foam/ThirdParty/settings/lapackSettings/make.inc"
+
+[ -f $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/lapackSettings/make.inc_backup ] || cp $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/lapackSettings/make.inc $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/lapackSettings/make.inc_backup
+
+sed -i 's/FORTRAN  = gfortran -fimplicit-none -shared -fPIC/FORTRAN  = gfortran -fimplicit-none -shared -fPIC -fallow-argument-mismatch/g' $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/lapackSettings/make.inc
+
+
+echo " >> Modifiy waves2Foam/ThirdParty/settings/sparseSettings/makefile"
+
+[ -f $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/sparseSettings/makefile_backup ] || cp $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/sparseSettings/makefile $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/sparseSettings/makefile_backup
+
+sed -i 's/OPT = -c -g -shared -fPIC/OPT = -c -g -shared -fPIC -fallow-argument-mismatch/g' $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/sparseSettings/makefile
+
+
+echo " >> Modifiy waves2Foam/ThirdParty/settings/oceanWave3DSettings/common.mk"
+
+[ -f $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/oceanWave3DSettings/common.mk_backup ] || cp $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/oceanWave3DSettings/common.mk $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/oceanWave3DSettings/common.mk_backup
+
+sed -i 's/DBFLAGS  = -pg -g -O0 -fPIC -fbounds-check -ffpe-trap=invalid,zero,overflow -ffree-line-length-none /DBFLAGS  = -pg -g -O0 -fPIC -fbounds-check -ffpe-trap=invalid,zero,overflow -ffree-line-length-none -fallow-argument-mismatch/g' $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/oceanWave3DSettings/common.mk
+
+sed -i 's/OPTFLAGS = -O3 -fPIC -ffpe-trap=invalid,zero,overflow -ffree-line-length-none -fstack-protector-all/OPTFLAGS = -O3 -fPIC -ffpe-trap=invalid,zero,overflow -ffree-line-length-none -fstack-protector-all -fallow-argument-mismatch/g' $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/oceanWave3DSettings/common.mk
+
+sed -i 's/SHLIBFLAGS  = -shared -O2 -fPIC -fbounds-check -ffpe-trap=invalid,zero,overflow -ffree-line-length-none -fstack-protector-all/SHLIBFLAGS  = -shared -O2 -fPIC -fbounds-check -ffpe-trap=invalid,zero,overflow -ffree-line-length-none -fstack-protector-all -fallow-argument-mismatch/g' $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/ThirdParty/settings/oceanWave3DSettings/common.mk
+#------------------------------------------------------------------------------
+
+
+#------------------------------------------------------------------------------
+# Compile waves2Foam/ThirdParty
+echo ""
+echo "------------------------------------------"
+echo "    Compile ThirdParty"
+echo "------------------------------------------"
+echo ""
+
+echo " >> Modifiy bin/bashrc.org"
+
+sed -i "s|export WAVES_GSL_INCLUDE=\/usr\/include|export WAVES_GSL_INCLUDE=$GSL_PREFIX\/include|g" $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/bin/bashrc.org
+
+sed -i "s|export WAVES_GSL_LIB=\/usr\/lib64|export WAVES_GSL_LIB=$GSL_PREFIX\/lib64|g" $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/bin/bashrc.org
+
+cd waves2Foam && . ./bin/bashrc.org
+
+( cd ThirdParty; ./Allwmake )
+#------------------------------------------------------------------------------
+
+
+#------------------------------------------------------------------------------
+# Compile waves2Foam/src
+echo ""
+echo "------------------------------------------"
+echo "    Compile library"
+echo "------------------------------------------"
+echo ""
+
+cd src
+
+[ -d waves2FoamSampling2312 ] || cp -r waves2FoamSampling2206 waves2FoamSampling2312
+
+sed -i 's/globalIndices_\[seti\].reset(coords.size(), globalIndex::gatherOnly{});/globalIndices_\[seti\].reset(globalIndex::gatherOnly{}, coords.size());/g' $WM_PROJECT_USER_DIR/applications/utilities/waves2Foam/src/waves2FoamSampling2312/surfaceElevation/sampledSurfaceElevation.C
+
+[ -f Allwmake_backup ] || cp Allwmake Allwmake_backup
+
+awk '
+    BEGIN {
+        in_section = 0
+    }
+    /    elif [ "$WM_PROJECT_VERSION_NUMBER" -lt "2206" ]/ {
+        print "" $0
+        print "    then"
+        print "        (cd waves2FoamSampling1712  ; wmake libso)"
+        print "    elif [ \"$WM_PROJECT_VERSION_NUMBER\" -lt \"2312\" ]"
+        print "    then"
+        print "        (cd waves2FoamSampling2206  ; wmake libso)"
+        print "    else"
+        print "        (cd waves2FoamSampling2312  ; wmake libso)"
+
+        in_section = 1
+        next
+    }
+    /fi/ && in_section {
+        print
+        in_section = 0
+        next
+    }
+    !in_section {
+        print
+    }
+' Allwmake_backup > Allwmake
+
+./Allwmake
+
+cd ../
+#------------------------------------------------------------------------------
+
+
+#------------------------------------------------------------------------------
+# Compile waves2Foam
+echo ""
+echo "-----------------------------------------------"
+echo "    Compile solvers and remaining utilities"
+echo "-----------------------------------------------"
+echo ""
+
+[ -d ./applications/solvers/solvers2312_PLUS ] || cp -r ./applications/solvers/solvers2206_PLUS ./applications/solvers/solvers2312_PLUS
+
+./Allwmake
+#------------------------------------------------------------------------------
+
+
+echo
+echo "********************************* Done *********************************"
+echo
+
+#------------------------------------------------------------------------------

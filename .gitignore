@@ -43,6 +43,10 @@ platforms/
 # VSCode
 /.vscode/
 
+# Solvers not ready for release
+/applications/solvers/interPlicCondensatingEvaporatingFoam
+/applications/solvers/chtMultiRegionInterPlicCondensatingEvaporatingFoam
+
 # Top-level build directories
 /build/
 /platforms/
