@@ -9,20 +9,19 @@
 
     while (runTime.run())
     {
-        ++runTime;
-
-        Info<< "Time = " << runTime.timeName() << nl << endl;
-
         #include "readDyMControls.H"
         #include "CourantNo.H"
         #include "alphaCourantNo.H"
         #include "setDeltaT.H"
 
-        #include "updateU.H"
+        ++runTime;
+
+        Info<< "Time = " << runTime.timeName() << nl << endl;
 
         #include "alphaSuSp.H"
         advector.advect(Sp, Su);   //Interface advection
 
+        #include "updateU.H"
 
         Info<< nl << "Phase-1 volume = "
             << gSum(alpha1.primitiveField() * mesh.V())

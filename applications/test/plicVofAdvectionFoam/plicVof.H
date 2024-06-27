@@ -12,36 +12,41 @@
 
     while (runTime.run())
     {
-        ++runTime;
-
-        Info<< "Time = " << runTime.timeName() << nl << endl;
-
-        // Used for AMR interpolation testing
-        /*
-        plicVofSolver.reconstruct();
-        mesh.update();
-        plicVofSolver.mapAlphaField();
-        */
-
         #include "readDyMControls.H"
         #include "CourantNo.H"
         #include "alphaCourantNo.H"
         #include "setDeltaT.H"
 
-        #include "updateU.H"
+        ++runTime;
+
+        Info<< "Time = " << runTime.timeName() << nl << endl;
+
+        // Used for AMR
+        if (isA<dynamicRefineFvMesh>(mesh))
+        {
+            plicVofSolver.reconstruct();
+
+            mesh.update();
+
+            if (mesh.changing())
+            {
+                plicVofSolver.mapAlphaField();
+            }
+        }
 
         plicVofSolver.reconstruct();    //Interface reconstruction
 
         #include "alphaSuSp.H"
         plicVofSolver.advect(Sp, Su);   //Interface advection
 
+        #include "updateU.H"
 
         Info<< nl << "Phase-1 volume = "
             << gSum(alpha1.primitiveField() * mesh.V())
             << nl << endl;
 
         Info<< "Times consumed by steps:" << nl
-            //<< "  Alpha mapping   = " << plicVofSolver.alphaMappingTime() << nl
+            << "  Alpha mapping   = " << plicVofSolver.alphaMappingTime() << nl
             << "  Reconstruction  = " << plicVofSolver.reconstructionTime() << nl
             << "  Advection       = " << plicVofSolver.advectionTime() << nl
             << endl;
