@@ -60,7 +60,6 @@ int main(int argc, char *argv[])
 
     #include "createTime.H"
     instantList timeDirs = timeSelector::select0(runTime, args);
-    #include "createNamedMesh.H"
 
     const scalar exactInitialVol(0.0141366879746714);
 
@@ -71,6 +70,8 @@ int main(int argc, char *argv[])
         runTime.setTime(timeDirs[timei], timei);
 
         Info<< "Time = " << runTime.timeName() << endl;
+
+        #include "createNamedMesh.H"
 
         #include "loadSolutions.H"
         #include "updateErrors.H"

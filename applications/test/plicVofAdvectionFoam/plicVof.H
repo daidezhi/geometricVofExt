@@ -34,12 +34,12 @@
             }
         }
 
+        #include "updateU.H"
+
         plicVofSolver.reconstruct();    //Interface reconstruction
 
         #include "alphaSuSp.H"
         plicVofSolver.advect(Sp, Su);   //Interface advection
-
-        #include "updateU.H"
 
         Info<< nl << "Phase-1 volume = "
             << gSum(alpha1.primitiveField() * mesh.V())

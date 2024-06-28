@@ -75,10 +75,18 @@ int main(int argc, char *argv[])
 
     argList::addOption("np", "number", "Number of OpenMP threads");
 
+    argList::addOption("time", "value", "Select specific time");
+
     #include "addRegionOption.H"
     #include "setRootCase.H"
     #include "setOpenMP.H"
     #include "createTime.H"
+
+    if (args.found("time"))
+    {
+        runTime.setTime(args.get<scalar>("time"), 1);
+    }
+
     #include "createDynamicFvMesh.H"
 
     scalar startTime(omp_get_wtime());
@@ -90,7 +98,7 @@ int main(int argc, char *argv[])
     #include "setAlphaField.H"
 
     // Additional iterations for dynamicRefineFvMesh
-    if (isA<dynamicRefineFvMesh>(mesh))
+    if (isA<dynamicRefineFvMesh>(mesh) and runTime.timeIndex() == 0)
     {
         Info << "> > > Iterations for dynamicRefineFvMesh < < <" << nl << endl;
 

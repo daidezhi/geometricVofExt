@@ -18,10 +18,10 @@
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
+        #include "updateU.H"
+
         #include "alphaSuSp.H"
         advector.advect(Sp, Su);   //Interface advection
-
-        #include "updateU.H"
 
         Info<< nl << "Phase-1 volume = "
             << gSum(alpha1.primitiveField() * mesh.V())
