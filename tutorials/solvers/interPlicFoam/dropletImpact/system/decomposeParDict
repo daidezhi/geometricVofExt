@@ -19,4 +19,14 @@ numberOfSubdomains  8;
 
 method  scotch;
 
+constraints
+{
+    //- Decompose cells such that all cell originating from single cell
+    //  end up on same processor
+    refinementHistory
+    {
+        type    refinementHistory;
+    }
+}
+
 // ************************************************************************* //
