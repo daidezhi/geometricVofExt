@@ -44,7 +44,9 @@ The `SimPLIC` library embodies the implementation of the SimPLIC method.
 - Supports run-time PLIC interface sampling.
 
 The VOF equation solved in the `SimPLIC` library is written as:
+
 $$\frac{\partial \alpha}{\partial t} + \nabla \cdot \left(\alpha \mathbf{U}\right) = S_p \alpha + S_u,$$
+
 where $\alpha$ represents the VOF function, $t$ denotes time, $\mathbf{U}$ is the velocity vector, and $S_p$ and $S_u$ correspond to the implicit and explicit contributions to the net source, respectively.
 
 For incompressible two-phase flows without phase change, both $S_p$ and $S_u$ are zero ($S_p = S_u = 0$). In the case of compressible two-phase flows without phase change, $S_p$ remains zero ($S_p = 0$) and $S_u$ is given by $\left(\nabla \cdot \mathbf{U}\right) \alpha$. For incompressible two-phase flows involving cavitation, $S_p = \left(\nabla \cdot \mathbf{U}\right) + \dot{V}_v - \dot{V}_c$ and $S_u$ as $\dot{V}_c$, where $\dot{V}_v$ and $\dot{V}_c$ represent the volume change rates due to condensation and evaporation, respectively. Within OpenFOAM framework, the `Kunz`, `Merkle` or `SchnerrSauer` cavitation model in the `phaseChangeTwoPhaseMixtures` library is adopted to evaluate $\dot{V}_v$ and $\dot{V}_c$. A summary of the different scenarios along with the corresponding solver(s) is given in the table below.
