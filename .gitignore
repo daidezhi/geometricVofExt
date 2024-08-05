@@ -46,6 +46,7 @@ platforms/
 # Solvers not ready for release
 /applications/solvers/interPlicCondensatingEvaporatingFoam
 /applications/solvers/chtMultiRegionInterPlicCondensatingEvaporatingFoam
+/applications/test/calcExactVofFieldForSphericalShapeInHexMesh
 
 # Top-level build directories
 /build/
