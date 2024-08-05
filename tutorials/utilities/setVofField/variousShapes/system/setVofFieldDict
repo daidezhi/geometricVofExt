@@ -1,11 +1,10 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2312                                  |
+|  \\    /   O peration     | Version:  v2312                                  |
 |   \\  /    A nd           | Website:  www.openfoam.com                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 FoamFile
 {
     version         2;
@@ -14,19 +13,19 @@ FoamFile
     location        "system";
     object          setVofFieldDict;
 }
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-field                   "alpha.water";
-initial                 0.0;
-snapTol                 1e-12;
+field                   "alpha.water";  // Field name
+initial                 0.0;            // Initial field value
+snapTol                 1e-12;          // Snapping tolerance
 
-triangulationScheme     "fan";
-extraBooleanCheck       false;
+triangulationScheme     "fan";          // "fan" (default) or "centroid"
+extraBooleanCheck       false;          // Extra boolean check, low efficiency
 
-exportPlicSurface       true;
-exportIsoSurface        true;
-writeShapes             true;
+// Write sample surfaces and shape meshes to ./postProcessing/setVofField
+exportPlicSurface       true;           // Write initial reconstructured PLIC interface
+exportIsoSurface        true;           // Write 0.5-isosurface
+writeShapes             true;           // Write surface meshes of shapes
 
 shapes
 {
@@ -101,6 +100,5 @@ shapes
         mode            add;
     }
 }
-
 
 // ************************************************************************* //
