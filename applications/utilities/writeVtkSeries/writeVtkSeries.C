@@ -74,9 +74,15 @@ int main(int argc, char *argv[])
         "funcName", "Name of the `surfaces` function object"
     );
 
+    argList::addArgument
+    (
+        "faceName", "Name within the `surfaces` sub dictionary"
+    );
+
     argList args(argc, argv);
 
     const word funcName(args.get<fileName>(1));
+    const word faceName(args.get<fileName>(2));
 
     const fileName postDir
     (
@@ -112,7 +118,7 @@ int main(int argc, char *argv[])
             {
                 for (fileName& fileI: fileHandler().readDir(postDir/timeDirI.name()))
                 {
-                    if (fileI.ext() == "vtp" or fileI.ext() == "vtk")
+                    if (fileI.lessExt() == faceName and (fileI.ext() == "vtp" or fileI.ext() == "vtk"))
                     {
                         timeNames.append(timeDirI.name());
 
@@ -127,7 +133,7 @@ int main(int argc, char *argv[])
 
             const word seriesName
             (
-                funcName + "." + fileName(fileNames[0].ext()) +".series"
+                funcName + "." + faceName + "." + fileName(fileNames[0].ext()) +".series"
             );
 
             Info << "Write VTK series to '" << seriesName << "'" << nl << endl;

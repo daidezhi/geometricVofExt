@@ -45,6 +45,7 @@ platforms/
 
 # Solvers not ready for release
 /applications/solvers/interPlicCondensatingEvaporatingFoam
+/applications/solvers/interPlicCondensatingEvaporatingOnePhaseFoam
 /applications/solvers/chtMultiRegionInterPlicCondensatingEvaporatingFoam
 /applications/test/calcExactVofFieldForSphericalShapeInHexMesh
 

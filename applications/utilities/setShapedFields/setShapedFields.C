@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "setOpenMP.H"
     #include "createTime.H"
-    #include "createDynamicFvMesh.H"
+    #include "createFvMesh.H"
 
     scalar startTime(omp_get_wtime());
 
