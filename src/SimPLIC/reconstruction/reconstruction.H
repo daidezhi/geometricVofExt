@@ -33,6 +33,20 @@ Class
 Description
     Reconstruct the approximated interface planes.
 
+    This class is developed based on Foam::reconstruction::gradAlpha and
+    Foam::reconstruction::plicRDF.
+
+    Reference:
+    \verbatim
+        Henning Scheufler, Johan Roenby,
+        Accurate and efficient surface reconstruction from volume
+        fraction data on general meshes,
+        Journal of Computational Physics, 2019,
+        doi 10.1016/j.jcp.2019.01.009
+    \endverbatim
+
+    Original code supplied by Henning Scheufler, DLR (2019)
+
 SourceFiles
     reconstruction.C
 

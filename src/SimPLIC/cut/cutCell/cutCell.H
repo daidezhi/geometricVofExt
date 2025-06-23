@@ -33,6 +33,21 @@ Class
 Description
     Class designed for clipping a mesh cell with an oriented plane.
 
+    This class extends Foam::cutCellPLIC to support analytical
+    signed-distance-based interface reconstruction and to handle splitting
+    operations for cells with warped (non-planar) faces.
+
+    Original reference:
+    \verbatim
+        Henning Scheufler, Johan Roenby,
+        Accurate and efficient surface reconstruction from volume
+        fraction data on general meshes,
+        Journal of Computational Physics, 2019,
+        doi 10.1016/j.jcp.2019.01.009
+    \endverbatim
+
+    Original code supplied by Henning Scheufler, DLR (2019)
+
 SourceFiles
     cutCell.C
 

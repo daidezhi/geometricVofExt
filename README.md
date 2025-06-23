@@ -15,9 +15,22 @@
 
 ## Overview
 
-The **`geometricVofExt`** package is an unofficial module of the geometric Volume of Fluid (VOF) method for OpenFOAM. This extension has a suite of pre- and post-processing tools alongside various solvers dedicated to two-phase flow dynamics. The pre-processing utilities are methodically assembled to initialize fraction fields of arbitrary shapes with optional dynamic mesh refinement, and to set up scalar, vector or tensor fields that vary based on the fraction values. These utilities are designed to enhance the flexibility and accuracy of multiphase flow simulations.
+The **`geometricVofExt`** package is an unofficial extension to OpenFOAM for geometric Volume of Fluid (VOF) interface capturing. It provides a collection of utilities and solvers designed for accurate and conservative simulation of two-phase flows with sharp interface resolution on general unstructured meshes.
 
-Moreover, the **`geometricVofExt`** package features solvers that utilize the innovative [SimPLIC](https://arxiv.org/abs/2402.05247) method, which supports unstructured meshes composed of arbitrary polyhedral cells. The SimPLIC method integrates Piecewise Linear Interface Calculation (PLIC) with Simpson's rule, offering an accurate and efficient approach to solve the VOF equation. These solvers are also designed to simulate the phase change phenomena and floating body dynamics. Additionally, the solvers ensure high adaptability to complex simulation scenarios with optional dynamic mesh refinement.
+The solvers in this package are based on the [SimPLIC](https://arxiv.org/abs/2402.05247) method, which is built upon the [isoAdvector](https://github.com/isoAdvector/isoAdvector) geometric VOF method developed by Dr. Johan Roenby and collaborators.  The `SimPLIC` class leverages the extensible design of `isoAdvector` and introduces two key modifications:
+- An analytical Piecewise Linear Interface Calculation (PLIC) algorithm for interface reconstruction on arbitrary polyhedral meshes (see `geometricVofExt::SimPLIC::cutCell::findSignedDistance()`);
+- A time-integrated flux computation using Simpson’s rule (see `geometricVofExt::SimPLIC::cutFace::timeIntegratedArea()`).
+
+The base solver, `interPlicFoam`, is adapted from `interIsoFoam` and replaces its advection scheme with the `SimPLIC` method for volume fraction transport.
+
+The **`geometricVofExt`** package extends the geometric VOF method to support advanced multiphase modeling capabilities, including:
+- Overset dynamic meshes, enabling interface tracking across moving and overlapping meshes.
+- Phase change models, supporting simulations of evaporation and condensation processes.
+- Integration with [waves2Foam](https://github.com/ogoe/waves2Foam), allowing wave generation and absorption for marine and coastal applications.
+
+The package also includes pre-processing tools for:
+- Initializing volume fraction fields of arbitrary shapes, with optional dynamic mesh refinement.
+- Setting up scalar, vector, or tensor fields that vary with the local volume fraction.
 
 
 ## Package Structure
@@ -278,6 +291,7 @@ cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
 
 ## Change Log
 
+* 06/23/2025. Fix missing credit to isoAdvector. [#2](https://github.com/daidezhi/geometricVofExt/issues/2).
 * 06/25/2024. Add support for [waves2Foam](https://github.com/ogoe/waves2Foam). The associated solver `wavePlicFoam` is also available.
 * 05/13/2024. Initial release.
 
@@ -288,7 +302,7 @@ cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
 * Haomin Yuan, NSE, ANL (*PI of HPC4EI project, SimPLIC development and review*)
 * Albert Y. Tong, Department of Mechanical and Aerospace Engineering (MAE), University of Texas at Arlington (UTA) (*SimPLIC development and review*)
 * Adrian Tentner, NSE, ANL (*SimPLIC development and review*)
-* Vimalan Adaikalanathan, MAE, UTA (*AMR testing*)
+* Vimalan Adaikalanathan, MAE, UTA (*AMR development and testing*)
 
 
 ## License
@@ -304,6 +318,8 @@ may redistribute files.
 
 
 ## Acknowledgment
+
+This work builds upon the isoAdvector geometric VOF method developed by Dr. Johan Roenby and collaborators. We gratefully acknowledge their contribution to open-source interface-capturing methods and recognize isoAdvector as the foundation for the development of the SimPLIC algorithm and the solvers in this repository.
 
 This work was initially funded by the U.S. Department of Energy High-Performance Computing for Energy Innovation (HPC4EI) program, support for this program was provided by the U.S. DOE Office of Science, Office of Fossil Energy, Office of Energy Efficiency & Renewable Energy.
 

@@ -34,6 +34,20 @@ Description
     Class designed for slicing a mesh face or a face defined by given points
     with an oriented plane.
 
+    This implementation is a modified version of Foam::cutFacePLIC, extended
+    to support time-integrated face area computation using Simpson’s rule.
+
+    Original reference:
+    \verbatim
+        Henning Scheufler, Johan Roenby,
+        Accurate and efficient surface reconstruction from volume
+        fraction data on general meshes,
+        Journal of Computational Physics, 2019,
+        doi 10.1016/j.jcp.2019.01.009
+    \endverbatim
+
+    Original code supplied by Henning Scheufler, DLR (2019)
+
 SourceFiles
     cutFace.C
 

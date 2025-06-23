@@ -37,8 +37,47 @@ Description
     calculation is based on PLIC and advecting the interface across the mesh
     faces with the velocity field interpolated to the interface planes.
 
+    This implementation is based on the isoAdvector geometric VOF method
+    developed by Dr. Johan Roenby and collaborators. SimPLIC builds directly
+    on the extensible structure of isoAdvector and introduces two key
+    modifications:
+    - An alternative interface location method based on analytical
+      reconstruction algorithms for unstructured meshes. See:
+      geometricVofExt::SimPLIC::cutCell::findSignedDistance().
+    - A flux integration scheme using Simpson’s rule instead of explicit
+      cell-face intersection tracking. See:
+      geometricVofExt::SimPLIC::cutFace::timeIntegratedArea().
+
+    References:
+
+    Main isoAdvector idea:
+    \verbatim
+        Roenby, J., Bredmose, H. and Jasak, H. (2016).
+        A computational method for sharp interface advection
+        Royal Society Open Science, 3
+        doi 10.1098/rsos.160405
+    \endverbatim
+
+    Calculation of rhoPhi:
+    \verbatim
+        Roenby, J., Bredmose, H., & Jasak, H. (2019).
+        IsoAdvector: Geometric VOF on general meshes.
+        OpenFOAM® (pp. 281-296). Springer, Cham.
+    \endverbatim
+
+    Extension to porous media flows:
+    \verbatim
+        Missios, K., Jacobsen, N. G., Moeller, K., & Roenby, J.
+        Using the isoAdvector Geometric VOF Method for Interfacial Flows
+        Through Porous Media. MARINE 2021.
+    \endverbatim
+
+    Original code supplied by Johan Roenby, DHI (2016)
+    Modified Henning Scheufler, DLR
+
 SourceFiles
     advection.C
+    advectionTemplates.C
 
 \*---------------------------------------------------------------------------*/
 
