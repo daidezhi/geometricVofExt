@@ -41,9 +41,6 @@ The `geometricVofExt` package is a comprehensive collection that includes librar
     <img src="./images/geometricVofExtStructure.svg" width="700px">
 </div>
 
-It should be noted that the utilities, solvers and tutorials under `test` are used to replicate the results presented in this study (*Dai, Dezhi, Haomin Yuan, Albert Y. Tong, and Adrian Tentner. "*A Geometric VOF Method for Interface Flow Simulations*." [arXiv preprint arXiv:2402.05247 (2024)](https://arxiv.org/abs/2402.05247)*), which illustrates the concepts and efficiency of the SimPLIC method.
-
-
 ### `SimPLIC` Library
 
 The `SimPLIC` library embodies the implementation of the SimPLIC method.
