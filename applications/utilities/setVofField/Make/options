@@ -1,7 +1,7 @@
 CGAL_EXACT = /*-DCGAL_DONT_USE_LAZY_KERNEL*/
 CGAL_INEXACT = -DCGAL_INEXACT
 
-include $(GENERAL_RULES)/CGAL
+include $(GENERAL_RULES)/cgal
 
 c++CGALWARN = -Wno-old-style-cast
 
