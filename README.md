@@ -291,7 +291,7 @@ cd $WM_PROJECT_USER_DIR/modules/geometricVofExt
 
 * 12/24/2025. Update to `OpenFOAM-v2512`.
 * 10/16/2025. Add `dynamicRefine2DFvMesh` lib for 2D AMR.
-* 10/15/2025. Integrate DLR `TwoPhaseFlow` (https://github.com/DLR-RY/TwoPhaseFlow) library to support boiling simulations
+* 10/15/2025. Integrate DLR `TwoPhaseFlow` (https://github.com/DLR-RY/TwoPhaseFlow) library to support boiling simulations.
 * 06/23/2025. Fix missing credit to isoAdvector. [#2](https://github.com/daidezhi/geometricVofExt/issues/2).
 * 06/25/2024. Add support for [waves2Foam](https://github.com/ogoe/waves2Foam). The associated solver `wavePlicFoam` is also available.
 * 05/13/2024. Initial release.

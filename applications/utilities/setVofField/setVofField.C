@@ -144,11 +144,17 @@ int main(int argc, char *argv[])
             #include "setAlphaField.H"
         }
 
+        mesh.update();
+
+        alpha1.correctBoundaryConditions();
+
         runTime.setTime(0, 0);
 
         mesh.write();
 
-        Info << "> > > > > > > > > > Done < < < < < < < < < < <" << nl << endl;
+        Info << nl
+             << "> > > > > > > > > > Done < < < < < < < < < < <"
+             << nl << endl;
     }
 
     // Write alpha field and interfaces

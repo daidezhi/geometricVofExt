@@ -19,6 +19,8 @@ echo -n "    >> " && wmake test/isoAdvectorAdvectionFoam
 echo -n "    >> " && wmake libso test/calcVofAdvectionErrors/isoSurfaceVolume
 echo -n "    >> " && wmake test/calcVofAdvectionErrors
 
+echo -n "    >> " && wmake test/calcExactVofFieldForSphericalShapeInHexMesh
+
 echo " >> Done"
 echo
 

@@ -13,12 +13,12 @@
             << ", volume: " << CGALSMeshI.volume()
             << ", mode: " << shapeModes[shapei]
             << endl;
-        
+
         std::map<word, validMode>::const_iterator iter
         (
             validModes.find(shapeModes[shapei])
         );
-        
+
         Info << "      Calculating mesh point and cell locations ..." << endl;
 
         const Foam::geometricVofExt::CGALVof::cellToSurfaceMeshLocation cellLocs
