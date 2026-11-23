@@ -153,15 +153,29 @@ Foam::label Foam::geometricVofExt::SimPLIC::cutFace::calcSubFace
 
     const scalar TSMALL(10.0 * SMALL);
 
+    // Face length scale: largest distance from the first vertex
+    scalar magSqrLf(0);
+    for (label i = 1; i < fPts.size(); ++i)
+    {
+        magSqrLf = max(magSqrLf, magSqr(fPts[i] - fPts[0]));
+    }
+
+    // Vertex lift relative to the face size (was an absolute 1e-14 m).
+    // It never exceeds 1e-14 of the face size, so it cannot distort the
+    // geometry. Round-off below it is harmless: the lift keeps the sign,
+    // so the vertex classification stays consistent. VSMALL keeps the lift
+    // non-zero for degenerate faces.
+    const scalar liftTol(TSMALL*Foam::sqrt(magSqrLf) + VSMALL);
+
     // Loop face vertices
     forAll(f, i)
     {
         scalar distanceI((fPts[i] & normal) + distance);
 
         // Lift the vertex slightly if it is very close to the plane
-        if (mag(distanceI) < TSMALL)
+        if (mag(distanceI) < liftTol)
         {
-            distanceI += sign(distanceI) * TSMALL;
+            distanceI += sign(distanceI) * liftTol;
         }
         
         pointDistances_.append(distanceI);
@@ -281,17 +295,21 @@ Foam::scalar Foam::geometricVofExt::SimPLIC::cutFace::timeIntegratedFaceFlux
     const pointField& points(mesh_.points());
     const pointField fPts(f.points(points));
     const label nPoints(f.size());
+
+    // Arrival-time snapping tolerance (distance), relative to the face size
+    const scalar snapTol(TSMALL*Foam::sqrt(magSf) + VSMALL);
     
-    //if (mag(Un0 * dt) > ROOTVSMALL)     // Interface is not stationary
-    if (mag(Un0) > 1e-12)
+    // Interface is treated as stationary if it moves less than 1e-14 of the
+    // face size during dt (was |Un0| > 1e-12 m/s)
+    if (mag(Un0)*dt > TSMALL*Foam::sqrt(magSf))
     {
         // Estimate time of arrival to the face points from their ormal
         // distance to the initial interface and the interface normal velocity
         scalarField pTimes(nPoints);
         forAll(f, i)
         {
-            scalar pTimeI(((points[f[i]] & normal) + distance) / Un0);
-            pTimes[i] = mag(pTimeI) < TSMALL ? 0.0 : pTimeI;
+            const scalar distI((points[f[i]] & normal) + distance);
+            pTimes[i] = mag(distI) < snapTol ? 0.0 : distI/Un0;
         }
 
         scalar dVf(0.0);    // Liquid volume
@@ -319,8 +337,8 @@ Foam::scalar Foam::geometricVofExt::SimPLIC::cutFace::timeIntegratedFaceFlux
 
             fPtsTri[0] = mesh_.faceCentres()[faceI];
 
-            scalar pTimeTri0(((fPtsTri[0] & normal) + distance) / Un0);
-            pTimesTri[0] = mag(pTimeTri0) < TSMALL ? 0.0 : pTimeTri0;
+            const scalar dist0((fPtsTri[0] & normal) + distance);
+            pTimesTri[0] = mag(dist0) < snapTol ? 0.0 : dist0/Un0;
 
             for (label pi = 0; pi < nPoints; ++pi)
             {
@@ -404,7 +422,7 @@ Foam::scalar Foam::geometricVofExt::SimPLIC::cutFace::timeIntegratedArea
     const scalar magSf
 )
 {
-    const scalar TSMALL(10.0 * SMALL);
+    //const scalar TSMALL(10.0 * SMALL);
 
     // Initialize time integrated area returned by this function
     scalar tIntArea(0.0);
@@ -465,7 +483,7 @@ Foam::scalar Foam::geometricVofExt::SimPLIC::cutFace::timeIntegratedArea
     }
 
     //const scalar smallTime(max(TSMALL/mag(Un0), TSMALL));
-    const scalar smallTime = max(1e-6*dt, TSMALL);
+    const scalar smallTime(1e-6*dt);    // was max(1e-6*dt, 1e-14 s)
 
     forAll(order, ti)
     {

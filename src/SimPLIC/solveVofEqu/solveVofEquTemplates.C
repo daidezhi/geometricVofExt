@@ -43,4 +43,14 @@ void Foam::geometricVofExt::SimPLIC::solveVofEqu::advect
 }
 
 
+template<class SpType, class SuType>
+void Foam::geometricVofExt::SimPLIC::solveVofEqu::dummyAdvect
+(
+    const SpType& Sp,
+    const SuType& Su
+)
+{
+    advector_.dummyAdvect(Sp, Su);
+}
+
 // ************************************************************************* //

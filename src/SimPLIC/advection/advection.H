@@ -322,6 +322,11 @@ public:
         template <class SpType, class SuType>
         void advect(const SpType& Sp, const SuType& Su);
 
+        //- Same as advect() but not update the fraction field, and calculate
+        //  the fraction flux alphaPhi_ only.
+        template <class SpType, class SuType>
+        void dummyAdvect(const SpType& Sp, const SuType& Su);
+
 
         // Access functions
 

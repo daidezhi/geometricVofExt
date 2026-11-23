@@ -109,6 +109,7 @@ void Foam::geometricVofExt::SimPLIC::advection::timeIntegratedFlux()
     const volVectorField& interfaceN(reconstructor_.interfaceN());
     const volScalarField& interfaceD(reconstructor_.interfaceD());
     const volVectorField& interfaceC(reconstructor_.interfaceC());
+
     forAll(mixedCells, i)
     {
         if (cellStatus[i] != 0)

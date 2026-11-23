@@ -22,7 +22,7 @@
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         // Used for AMR
-        if (isA<dynamicRefineFvMesh>(mesh))
+        if (plicVofSolver.isRefineMesh())
         {
             plicVofSolver.reconstruct();
 

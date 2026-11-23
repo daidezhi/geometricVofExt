@@ -136,8 +136,17 @@ public:
         template <class SpType, class SuType>
         void advect(const SpType& Sp, const SuType& Su);
 
+        //- Same as advect() but not update the fraction field, and calculate
+        //  the fraction flux alphaPhi_ only.
+        template <class SpType, class SuType>
+        void dummyAdvect(const SpType& Sp, const SuType& Su);
+
         //- Geometric interpolation of the alpha field in dynamic meshes
         void mapAlphaField();
+
+        //- Is the mesh an AMR mesh (dynamicRefineFvMesh or
+        //  dynamicRefine2DFvMesh)?
+        bool isRefineMesh() const;
 
 
         // Access functions

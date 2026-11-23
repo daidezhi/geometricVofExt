@@ -175,6 +175,12 @@ private:
             //- Face flatness
             surfaceScalarField zeta_;
 
+            //- Cell volumes stored at the last reconstruction.
+            //  Registered (and therefore mapped by mesh.update()) so that
+            //  mapAlphaField() can tell refined child cells (V << V0) from
+            //  unchanged (V == V0) and merged (V > V0) cells.
+            volScalarField cellVolume0_;
+
             //- Is interface cell?
             boolList interfaceCell_;
 
@@ -284,6 +290,10 @@ public:
 
         //- Geometric interpolation of the alpha field in dynamic meshes
         void mapAlphaField();
+
+        //- Is the mesh an AMR mesh (dynamicRefineFvMesh or
+        //  dynamicRefine2DFvMesh)?
+        bool isRefineMesh() const;
 
         // Cell type determination functions
 

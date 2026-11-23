@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
         {
             if (pimple.firstIter() || moveMeshOuterCorrectors)
             {
-                if (isA<dynamicRefineFvMesh>(mesh))
+                if (plicVofSolver.isRefineMesh())
                 {
                     plicVofSolver.reconstruct();
                 }
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
                     gh = (g & mesh.C()) - ghRef;
                     ghf = (g & mesh.Cf()) - ghRef;
 
-                    if (isA<dynamicRefineFvMesh>(mesh))
+                    if (plicVofSolver.isRefineMesh())
                     {
                         plicVofSolver.mapAlphaField();
                         alpha2 = 1.0 - alpha1;

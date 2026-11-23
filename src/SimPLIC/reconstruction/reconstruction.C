@@ -608,6 +608,19 @@ Foam::geometricVofExt::SimPLIC::reconstruction::reconstruction
         mesh_,
         dimensionedScalar(dimless, 0.0)
     ),
+    cellVolume0_
+    (
+        IOobject
+        (
+            "cellVolume0",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar(dimVolume, Zero)
+    ),
 
     interfaceCell_(alpha1_.mesh().nCells(), false),
 
@@ -635,6 +648,8 @@ Foam::geometricVofExt::SimPLIC::reconstruction::reconstruction
     timeIndexAndIter_(0, 0)
 {
     clearInterfaceData();
+
+    cellVolume0_.primitiveFieldRef() = mesh_.cellVolumes();
 
     if (orientationMethodMapIter_ == validOrientationMethods_.end())
     {
@@ -720,6 +735,11 @@ void Foam::geometricVofExt::SimPLIC::reconstruction::initialize()
 
 void Foam::geometricVofExt::SimPLIC::reconstruction::reconstruct(bool forceUpdate)
 {
+    // Remember the volumes of the mesh the interface is reconstructed on.
+    // The field is mapped by mesh.update(), which lets mapAlphaField()
+    // identify cells created by refinement.
+    cellVolume0_.primitiveFieldRef() = mesh_.cellVolumes();
+
     const bool uptodate = alreadyReconstructed(forceUpdate);
 
     if (uptodate && !forceUpdate)
@@ -759,7 +779,7 @@ void Foam::geometricVofExt::SimPLIC::reconstruction::reconstruct(bool forceUpdat
     {
         cellStatus_[i] =
             cutCell_.findSignedDistance(mixedCells_[i], splitWarpedFace_);
-        
+
         if (cellStatus_[i] == 0)
         {
             if(mag(interfaceN_.ref()[mixedCells_[i]]) <= SMALL)
@@ -789,89 +809,100 @@ void Foam::geometricVofExt::SimPLIC::reconstruction::reconstruct(bool forceUpdat
 
 void Foam::geometricVofExt::SimPLIC::reconstruction::mapAlphaField()
 {
-    if (!isA<dynamicRefineFvMesh>(mesh_) or !isA<dynamicRefine2DFvMesh>(mesh_))
+    // Only meaningful after a topology change of an AMR mesh.
+    // Note: the previous check
+    //     if (!isA<dynamicRefineFvMesh>(mesh_) or !isA<dynamicRefine2DFvMesh>(mesh_))
+    // was always true (a mesh cannot be both types), which silently disabled
+    // the geometric mapping for every mesh type.
+    if (!mapAlphaField_ || !isRefineMesh() || !mesh_.topoChanging())
     {
         return;
     }
 
-    if (mesh_.changing() && mapAlphaField_)
+    const scalar startTime(mesh_.time().elapsedCpuTime());
+
+    // A child cell created by refinement has V/V0 = 1/4 (2D) or 1/8 (3D),
+    // where V0 is the (mapped) volume of its parent. Unchanged cells have
+    // V/V0 = 1 and merged (unrefined) cells have V/V0 > 1.
+    const scalar refinedVolumeRatio(0.6);
+
+    // Reconstructed normals are unit vectors; cells without a valid interface
+    // (pure cells, or mixed cells whose reconstruction failed) carry n = 0.
+    const scalar validNormalMag(0.5);
+
+    const scalarField& V(mesh_.cellVolumes());
+    const scalarField& V0(cellVolume0_.primitiveField());
+    const vectorField& normals(interfaceN_.primitiveField());
+    const scalarField& distances(interfaceD_.primitiveField());
+
+    label nRefinedChildren(0);
+    label nMappedCells(0);
+    label nMixedWithoutNormal(0);
+
+    // Phase volume before geometric mapping (after the mesh mapper)
+    const scalar phaseVolume0(gSum(alpha1In_*V));
+
+    forAll(alpha1In_, celli)
     {
-        const scalar startTime(mesh_.time().elapsedCpuTime());
-
-        IOdictionary dynamicMeshDict
-        (
-            IOobject
-            (
-                "dynamicMeshDict",
-                mesh_.time().constant(),
-                mesh_,
-                IOobject::MUST_READ_IF_MODIFIED,
-                IOobject::NO_WRITE,
-                false
-            )
-        );
-
-        dictionary refineDict;
-
-        if (isA<dynamicRefineFvMesh>(mesh_))
+        // Only children of refined parents are mapped geometrically. Their
+        // interfaceN/interfaceD were copied from the parent, so cutting all
+        // children with the parent plane conserves the parent volume.
+        // Unchanged and merged cells keep the (conservative) values given
+        // by the mesh mapper.
+        if (V[celli] > refinedVolumeRatio*V0[celli])
         {
-            refineDict =
-                dynamicMeshDict.optionalSubDict("dynamicRefineFvMeshCoeffs");
-        }
-        else
-        {
-            refineDict =
-                dynamicMeshDict.optionalSubDict("dynamicRefine2DFvMeshCoeffs");
+            continue;
         }
 
-        // dictionary refineDict
-        // (
-        //     IOdictionary
-        //     (
-        //         IOobject
-        //         (
-        //             "dynamicMeshDict",
-        //             mesh_.time().constant(),
-        //             mesh_,
-        //             IOobject::MUST_READ_IF_MODIFIED,
-        //             IOobject::NO_WRITE,
-        //             false
-        //         )
-        //     ).optionalSubDict("dynamicRefineFvMeshCoeffs")
-        // );
+        ++nRefinedChildren;
 
-        const scalar lowerRefineLevel =
-            refineDict.get<scalar>("lowerRefineLevel");
-        const scalar upperRefineLevel =
-            refineDict.get<scalar>("upperRefineLevel");
-
-        forAll (alpha1_, celli)
+        // Parent had no valid interface plane: the copied alpha is kept.
+        // (Previously such cells were cut with n = 0 and set to alpha = 0,
+        // i.e. liquid was deleted.)
+        if (mag(normals[celli]) < validNormalMag)
         {
-            if
-            (
-                alpha1In_[celli] >= lowerRefineLevel
-             && alpha1In_[celli] <= upperRefineLevel
-            )
+            // Copied alpha is mixed, i.e. the parent was an interface cell,
+            // but no plane is available: should not happen in normal runs
+            if (isAMixedCell(celli))
             {
-                const vector& normali(interfaceN_.primitiveField()[celli]);
-                const scalar distancei(interfaceD_.primitiveField()[celli]);
-                const label cellStatusi
-                    = cutCell_.calcSubCell(celli, normali, distancei, false);
-
-                alpha1In_[celli] = cutCell_.volumeOfFluid();
+                ++nMixedWithoutNormal;
             }
+
+            continue;
         }
 
-        alpha1_.correctBoundaryConditions();
-        alpha1_.oldTime() = alpha1_;
-        alpha1_.oldTime().correctBoundaryConditions();
+        cutCell_.calcSubCell(celli, normals[celli], distances[celli], false);
 
-        alphaMappingTime_ += (mesh_.time().elapsedCpuTime() - startTime);
+        alpha1In_[celli] = cutCell_.volumeOfFluid();
+
+        ++nMappedCells;
     }
-    else
-    {
-        return;
-    }
+
+    const scalar phaseVolume1(gSum(alpha1In_*V));
+
+    alpha1_.correctBoundaryConditions();
+    alpha1_.oldTime() = alpha1_;
+    alpha1_.oldTime().correctBoundaryConditions();
+
+    Info<< "SimPLIC::reconstruction: Refined child cells = "
+        << returnReduce(nRefinedChildren, sumOp<label>())
+        << ", geometrically mapped = "
+        << returnReduce(nMappedCells, sumOp<label>())
+        << ", mixed without normal = "
+        << returnReduce(nMixedWithoutNormal, sumOp<label>())
+        << ", phase volume change = " << (phaseVolume1 - phaseVolume0)
+        << endl;
+
+    alphaMappingTime_ += (mesh_.time().elapsedCpuTime() - startTime);
+}
+
+
+bool Foam::geometricVofExt::SimPLIC::reconstruction::isRefineMesh() const
+{
+    return
+    (
+        isA<dynamicRefineFvMesh>(mesh_) || isA<dynamicRefine2DFvMesh>(mesh_)
+    );
 }
 
 

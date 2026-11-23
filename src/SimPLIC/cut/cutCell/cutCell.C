@@ -257,12 +257,15 @@ void Foam::geometricVofExt::SimPLIC::cutCell::updateSubCellPointsandFaces()
         subCellPoints_.append(interfacePoints_);
     }
 
-    // Merge duplicated points and update point labels of faces
+    // Merge duplicated points and update point labels of faces.
+    // Tolerance relative to the cell size (was an absolute 1e-14 m).
+    const scalar mergeTol(10.0*SMALL*cbrt(mesh_.cellVolumes()[cellI_]));
+
     labelList pointToUnique;
     inplaceMergePoints<DynamicList<point>>
     (
         subCellPoints_,
-        10.0*SMALL,
+        mergeTol,
         false,
         pointToUnique
     );
@@ -493,7 +496,9 @@ Foam::label Foam::geometricVofExt::SimPLIC::cutCell::calcSubCell
         // In the rare but occuring cases where a cell is only touched at a
         // point or a line the interfaceArea_ will have zero length and
         // here the cell should be treated as either completely empty or full.
-        if (mag(interfaceArea_) < TSMALL)
+        //    Relative to the cell face-area scale V^(2/3)
+        //    (was an absolute 1e-14 m^2)
+        if (mag(interfaceArea_) < TSMALL*sqr(cbrt(V[cellI])))
         {
             if (nSubmergedFaces == 0)   // Fully empty cell
             {
@@ -686,11 +691,13 @@ Foam::label Foam::geometricVofExt::SimPLIC::cutCell::findSignedDistance
     scalar lowAlpha(0.0);
     scalar upAlpha(1.0);
 
-    scalar midDistance, midLabel, midAlpha;
+    scalar midDistance, midAlpha;
+    label midLabel;
 
     while ((upLabel - lowLabel) > 1)
     {
-        midLabel = round(0.5 * (upLabel + lowLabel));
+        //midLabel = round(0.5 * (upLabel + lowLabel));
+        midLabel = (upLabel + lowLabel + 1) / 2;
         midDistance = vertexDistances[vertexDistanceOrder[midLabel]];
         calcSubCell(cellI, normalI, midDistance, splitWarpedFace);
         midAlpha = volumeOfFluid();
@@ -718,7 +725,9 @@ Foam::label Foam::geometricVofExt::SimPLIC::cutCell::findSignedDistance
         }
     }
 
-    if (mag(lowDistance - upDistance) < TSMALL)
+    // Degenerate prismatoid, relative to the cell size
+    // (was an absolute 1e-14 m)
+    if (mag(lowDistance - upDistance) < TSMALL*cbrt(V[cellI]))
     {
         const scalar midDistance(0.5 * (lowDistance + upDistance));
         calcSubCell(cellI, normalI, midDistance, splitWarpedFace);
@@ -762,27 +771,86 @@ Foam::label Foam::geometricVofExt::SimPLIC::cutCell::findSignedDistance
     scalar a, b, c, d;
 
     a =  13.5 * alphaOneThird - 13.5 * alphaTwoThirds + 4.5 * alphaPrismatoid;
-
     b = -22.5 * alphaOneThird + 18.0 * alphaTwoThirds - 4.5 * alphaPrismatoid;
-
     c =   9.0 * alphaOneThird -  4.5 * alphaTwoThirds + 1.0 * alphaPrismatoid;
-
     d = lowAlpha - alphaI;
 
-    // Find the root of Eq. (16) by using Newton method, max iteration is 100
-    scalar lambda(0.5);    // Initial guess is set to 0.5
-    for (label iter = 0; iter < 100; iter++)
+    // Find the root of Eq. (16) in [0, 1] by a safeguarded Newton method:
+    //     f(lambda) = a*lambda^3 + b*lambda^2 + c*lambda + d
+    // with f(0) = lowAlpha - alphaI <= 0 and f(1) = upAlpha - alphaI >= 0
+    // (a + b + c = alphaPrismatoid). A Newton step is accepted only if it
+    // stays strictly inside the current bracket [lambdaLow, lambdaUp],
+    // otherwise a bisection step is taken. Plain Newton from 0.5 can leave
+    // [0, 1], stall or give NaN when f'(lambda) ~ 0, i.e. when the
+    // cross-section area nearly vanishes inside the prismatoid
+    // (non-convex or degenerate cells).
+    const scalar fLow(d);
+    const scalar fUp(a + b + c + d);
+
+    scalar lambda(0.0);
+    if (fLow >= 0.0)
     {
-        const scalar func(a * pow3(lambda) + b * sqr(lambda) + c * lambda + d);
-        const scalar funcPrime(3.0 * a * sqr(lambda) + 2.0 * b * lambda + c);
-        const scalar lambdaNew(lambda - (func / funcPrime));
+        lambda = 0.0;
+    }
+    else if (fUp <= 0.0)
+    {
+        lambda = 1.0;
+    }
+    else
+    {
+        const scalar fTol(TSMALL * (fUp - fLow));
 
-        if (mag(lambdaNew - lambda) < TSMALL) // Convergence tolerance is 1e-14
+        scalar lambdaLow(0.0);
+        scalar lambdaUp(1.0);
+
+        // Initial guess by linear interpolation (regula falsi)
+        lambda = -fLow / (fUp - fLow);
+
+        for (label iter = 0; iter < 100; iter++)
         {
-            break;
-        }
+            const scalar func(((a*lambda + b)*lambda + c)*lambda + d);
 
-        lambda = lambdaNew;
+            if (mag(func) <= fTol)
+            {
+                break;
+            }
+
+            // Shrink the bracket
+            if (func < 0.0)
+            {
+                lambdaLow = lambda;
+            }
+            else
+            {
+                lambdaUp = lambda;
+            }
+
+            const scalar funcPrime((3.0*a*lambda + 2.0*b)*lambda + c);
+
+            // Newton step if it stays inside the bracket, else bisection
+            scalar lambdaNew(0.5*(lambdaLow + lambdaUp));
+
+            if (funcPrime > 0.0)
+            {
+                const scalar lambdaNewton(lambda - func/funcPrime);
+
+                if (lambdaNewton > lambdaLow && lambdaNewton < lambdaUp)
+                {
+                    lambdaNew = lambdaNewton;
+                }
+            }
+
+            if
+            (
+                mag(lambdaNew - lambda) < TSMALL || (lambdaUp - lambdaLow) < TSMALL
+            )
+            {
+                lambda = lambdaNew;
+                break;
+            }
+
+            lambda = lambdaNew;
+        }
     }
 
     // Calculate signed distance by using Eq. (18)

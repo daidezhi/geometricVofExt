@@ -31,7 +31,7 @@ upperRefineLevel 0.999;
 unrefineLevel   10;
 
 // Have slower than 2:1 refinement
-nBufferLayers   4;  // Not work in dynamicRefine2DFvMesh
+nBufferLayers   1;  // Not work in dynamicRefine2DFvMesh
 nBufferLayersR  1;
 
 // Refine cells only up to maxRefinement levels

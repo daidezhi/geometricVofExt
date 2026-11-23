@@ -123,6 +123,7 @@ void Foam::geometricVofExt::SimPLIC::advection::limitFlux
 )
 {
     const scalar aTol(100.0*SMALL);                 // Tolerance
+    const scalar rDeltaT(1.0 / mesh_.time().deltaTValue());
     scalar maxAlphaMinus1(gMax(alpha1_) - 1.0);     // max(alphaNew - 1);
     scalar minAlpha(gMin(alpha1_));                 // min(alphaNew);
     const label nOvershoots(20);            // sum(pos0(alphaNew - 1 - aTol));
@@ -170,8 +171,13 @@ void Foam::geometricVofExt::SimPLIC::advection::limitFlux
                     const label own(owner[facei]);
                     scalar Vown(mesh_.V()[own]);
 
+                    // Same discretisation as in advect()/boundFlux():
+                    //     alpha = (... - netFlux/V*rDeltaT)/(rDeltaT - Sp)
+                    // so a flux correction changes alpha by
+                    //     dVfCorr/V * rDeltaT/(rDeltaT - Sp).
                     alpha1_[own] -=
-                        faceValue(dVfCorrectionValues, facei) / Vown;
+                        faceValue(dVfCorrectionValues, facei) / Vown
+                      * rDeltaT / (rDeltaT - Sp[own]);
 
                     if (mesh_.isInternalFace(facei))
                     {
@@ -179,7 +185,8 @@ void Foam::geometricVofExt::SimPLIC::advection::limitFlux
                         scalar Vnei(mesh_.V()[nei]);
 
                         alpha1_[nei] +=
-                            faceValue(dVfCorrectionValues, facei) / Vnei;
+                            faceValue(dVfCorrectionValues, facei) / Vnei
+                          * rDeltaT / (rDeltaT - Sp[nei]);
                     }
 
                     // Change to treat boundaries consistently
@@ -232,7 +239,13 @@ void Foam::geometricVofExt::SimPLIC::advection::boundFlux
     correctedFaces.clear();
 
     const scalarField& meshV(mesh_.cellVolumes());
-    const volScalarField& alphaOld(alpha1_.oldTime());
+
+    // Old-time alpha adjusted for mesh motion (consistent with advect())
+    scalarField alphaOld(alpha1_.oldTime().primitiveField());
+    if (mesh_.moving())
+    {
+        alphaOld *= (mesh_.Vsc0() / mesh_.Vsc());
+    }
 
     DynamicList<label> downwindFaces(10);
     DynamicList<label> facesToPassFluidThrough(downwindFaces.size());
@@ -373,6 +386,79 @@ void Foam::geometricVofExt::SimPLIC::advection::advect
     // Calculate volumetric face transport during dt
     timeIntegratedFlux();
 
+    // Old-time alpha, adjusted for mesh motion:
+    //     alpha^{n+1} V^{n+1} = alpha^n V^n - sum(dVf)
+    // Note: scaling alpha1In_ here (as before) had no effect, because
+    // alpha1_ is overwritten from alpha1_.oldTime() below.
+    scalarField alphaOld(alpha1_.oldTime().primitiveField());
+    if (mesh_.moving())
+    {
+        alphaOld *= (mesh_.Vsc0() / mesh_.Vsc());
+    }
+
+    // Overset
+    if (isA<dynamicOversetFvMesh>(mesh_))
+    {
+        const volScalarField& cellMask_
+        (
+            mesh_.lookupObject<volScalarField>("cellMask")
+        );
+
+        surfaceScalarField faceMask_
+        (
+            localMin<scalar>(mesh_).interpolate(cellMask_)
+        );
+
+        dVf_ *= faceMask_;
+    }
+
+    // Advect the free surface
+    alpha1_.primitiveFieldRef() =
+    (
+        alphaOld * rDeltaT
+      + Su.field()
+      - fvc::surfaceIntegrate(dVf_)().primitiveField() * rDeltaT
+    ) / (rDeltaT - Sp.field());
+
+    alpha1_.correctBoundaryConditions();
+
+    // Adjust dVf for unbounded cells
+    limitFlux(Sp, Su);
+
+    // Apply non-conservative bounding mechanisms (clipping and snapping)
+    // Note: We should be able to write out alpha before this is done!
+    applyBruteForceBounding();
+
+    advectionTime_ += (mesh_.time().elapsedCpuTime() - startTime);
+
+    alphaPhi_ = dVf_ / mesh_.time().deltaT();
+}
+
+
+template<class SpType, class SuType>
+void Foam::geometricVofExt::SimPLIC::advection::dummyAdvect
+(
+    const SpType& Sp,
+    const SuType& Su
+)
+{
+    if (mesh_.topoChanging())
+    {
+        setProcessorPatches();
+    }
+
+    scalar startTime(mesh_.time().elapsedCpuTime());
+
+    const scalar rDeltaT(1.0 / mesh_.time().deltaTValue());
+
+    // Initialising dVf with upwind values
+    // i.e. phi[facei]*alpha1[upwindCell[facei]]*dt
+    // Make sure phi_ *= faceMask if overset mesh is used
+    dVf_ = upwind<scalar>(mesh_, phi_).flux(alpha1_) * mesh_.time().deltaT();
+
+    // Calculate volumetric face transport during dt
+    timeIntegratedFlux();
+
     // Adjust alpha for mesh motion
     if (mesh_.moving())
     {
@@ -396,21 +482,21 @@ void Foam::geometricVofExt::SimPLIC::advection::advect
     }
 
     // Advect the free surface
-    alpha1_.primitiveFieldRef() =
-    (
-        alpha1_.oldTime().primitiveField() * rDeltaT
-      + Su.field()
-      - fvc::surfaceIntegrate(dVf_)().primitiveField() * rDeltaT
-    ) / (rDeltaT - Sp.field());
+    // alpha1_.primitiveFieldRef() =
+    // (
+    //     alpha1_.oldTime().primitiveField() * rDeltaT
+    //   + Su.field()
+    //   - fvc::surfaceIntegrate(dVf_)().primitiveField() * rDeltaT
+    // ) / (rDeltaT - Sp.field());
 
-    alpha1_.correctBoundaryConditions();
+    // alpha1_.correctBoundaryConditions();
 
     // Adjust dVf for unbounded cells
-    limitFlux(Sp, Su);
+    // limitFlux(Sp, Su);
 
     // Apply non-conservative bounding mechanisms (clipping and snapping)
     // Note: We should be able to write out alpha before this is done!
-    applyBruteForceBounding();
+    // applyBruteForceBounding();
 
     advectionTime_ += (mesh_.time().elapsedCpuTime() - startTime);
 

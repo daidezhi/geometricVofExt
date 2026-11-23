@@ -105,4 +105,9 @@ void Foam::geometricVofExt::SimPLIC::solveVofEqu::mapAlphaField()
 }
 
 
+bool Foam::geometricVofExt::SimPLIC::solveVofEqu::isRefineMesh() const
+{
+    return reconstructor_.isRefineMesh();
+}
+
 // ************************************************************************* //
